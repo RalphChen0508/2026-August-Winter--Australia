@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,32 +15,24 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;900&family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
 
     <!-- Tailwind Config for Australia Theme (Sky & Amber) -->
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    fontFamily: { sans: ['Nunito', 'sans-serif'] },
+                    fontFamily: { 
+                        sans: ['Nunito', '"Noto Sans TC"', 'sans-serif'] 
+                    },
                     colors: {
                         theme: {
-                            50: '#f0f9ff',  // sky-50
-                            100: '#e0f2fe', // sky-100
-                            200: '#bae6fd', // sky-200
-                            300: '#7dd3fc', // sky-300
-                            400: '#38bdf8', // sky-400
-                            500: '#0ea5e9', // sky-500
-                            600: '#0284c7', // sky-600
-                            700: '#0369a1', // sky-700
-                            800: '#075985', // sky-800
-                            900: '#0c4a6e', // sky-900
+                            50: '#f0f9ff', 100: '#e0f2fe', 200: '#bae6fd', 300: '#7dd3fc',
+                            400: '#38bdf8', 500: '#0ea5e9', 600: '#0284c7', 700: '#0369a1',
+                            800: '#075985', 900: '#0c4a6e',
                         },
                         accent: {
-                            50: '#fffbeb',  // orange/amber
-                            100: '#fef3c7',
-                            500: '#f59e0b',
-                            600: '#d97706',
+                            50: '#fffbeb', 100: '#fef3c7', 500: '#f59e0b', 600: '#d97706',
                         }
                     }
                 }
@@ -67,7 +59,7 @@
 
         .nav-btn { transition: all 0.3s ease; }
         .nav-btn.active {
-            background-color: #0284c7; /* theme-600 */
+            background-color: #0284c7; 
             color: white;
             box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
         }
@@ -131,6 +123,17 @@
         .status-saved { background: #dcfce7; color: #166534; }
         .status-saving { background: #fef9c3; color: #854d0e; }
         .status-error { background: #fee2e2; color: #991b1b; }
+
+        /* Weather Tooltip */
+        .weather-tooltip .tooltip-text {
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .weather-tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
     </style>
 </head>
 <body class="min-h-screen pb-24 bg-slate-50">
@@ -139,9 +142,9 @@
     <div id="auth-overlay" class="fixed inset-0 z-[100] bg-slate-50/90 backdrop-blur-sm flex justify-center items-center" style="display: none;">
         <div class="text-center p-10 glass-card rounded-3xl shadow-2xl border border-white">
             <h1 class="text-6xl mb-6">🔒</h1>
-            <h2 class="text-3xl font-black text-slate-800 mb-3">Access Denied</h2>
-            <p class="text-slate-500 mb-8 font-medium">Invalid password.<br>Please try again to view the itinerary.</p>
-            <button onclick="sessionStorage.removeItem('dashboard_role'); location.reload();" class="bg-theme-600 text-white px-8 py-3 rounded-full hover:bg-theme-800 transition-colors font-bold shadow-md">Retry</button>
+            <h2 class="text-3xl font-black text-slate-800 mb-3" data-i18n="accessDenied">Access Denied</h2>
+            <p class="text-slate-500 mb-8 font-medium" data-i18n="invalidPassword">Invalid password.<br>Please try again.</p>
+            <button onclick="sessionStorage.removeItem('dashboard_role'); location.reload();" class="bg-theme-600 text-white px-8 py-3 rounded-full hover:bg-theme-800 transition-colors font-bold shadow-md" data-i18n="retry">Retry</button>
         </div>
     </div>
 
@@ -151,14 +154,13 @@
         window.isAuthenticated = false;
 
         (function initAuth() {
-            // Salted Base64 Hashes
             const VIEW_HASH = "bXlUcmlwXzg4ODg="; 
             const EDIT_HASH = "bXlUcmlwX3lzWVMxMDI4"; 
             
             let userRole = sessionStorage.getItem('dashboard_role');
 
             if (!userRole) {
-                const input = prompt("Enter Password:");
+                const input = prompt("請輸入密碼 / Enter Password:");
                 if (!input) return;
 
                 const saltedInput = "myTrip_" + input;
@@ -189,8 +191,53 @@
             <span id="sync-text">Connecting...</span>
         </div>
 
+        <!-- 🌐 Top Utility Bar (Widgets: Language, Currency, Weather) -->
+        <div class="px-4 pt-4 max-w-6xl mx-auto">
+            <div class="glass-card rounded-2xl py-2 px-4 flex flex-col sm:flex-row justify-between items-center gap-3 text-sm font-bold text-slate-600 shadow-sm border border-white">
+                
+                <!-- Left: Settings (Lang + Currency) -->
+                <div class="flex items-center gap-4">
+                    <!-- Language Switcher -->
+                    <div class="relative group cursor-pointer flex items-center gap-1.5 hover:text-theme-600 transition-colors">
+                        <i data-lucide="globe" width="16"></i>
+                        <select id="lang-selector" onchange="changeLanguage(this.value)" class="bg-transparent border-none outline-none cursor-pointer appearance-none pr-4 text-theme-700">
+                            <option value="zh-TW">繁體中文</option>
+                            <option value="en">English</option>
+                            <option value="ja">日本語</option>
+                        </select>
+                    </div>
+                    <div class="w-px h-4 bg-slate-300"></div>
+                    <!-- Exchange Rate (Dynamic) -->
+                    <div class="flex items-center gap-1.5 text-accent-600" title="即時匯率由 ExchangeRate-API 提供">
+                        <i data-lucide="coins" width="16"></i>
+                        <span id="exchange-rate-display">1 AUD = -- TWD</span>
+                    </div>
+                </div>
+
+                <!-- Right: Local Weather (Dynamic) -->
+                <div class="flex items-center gap-4">
+                    <div class="weather-tooltip relative flex items-center gap-2 hover:bg-slate-100 px-2 py-1 rounded cursor-help transition-colors">
+                        <span class="flex items-center gap-1 text-blue-600"><i data-lucide="map-pin" width="14"></i> SYD</span>
+                        <span id="weather-syd" class="flex items-center gap-1">--°C</span>
+                        <!-- Dropdown tooltip for 3 days -->
+                        <div id="weather-syd-tooltip" class="tooltip-text absolute top-full right-0 mt-2 w-48 bg-white/95 backdrop-blur shadow-xl rounded-xl p-3 border border-slate-100 z-50 text-xs font-medium space-y-2">
+                            Loading...
+                        </div>
+                    </div>
+                    <div class="w-px h-4 bg-slate-300"></div>
+                    <div class="weather-tooltip relative flex items-center gap-2 hover:bg-slate-100 px-2 py-1 rounded cursor-help transition-colors">
+                        <span class="flex items-center gap-1 text-orange-500"><i data-lucide="map-pin" width="14"></i> GC</span>
+                        <span id="weather-gc" class="flex items-center gap-1">--°C</span>
+                        <div id="weather-gc-tooltip" class="tooltip-text absolute top-full right-0 mt-2 w-48 bg-white/95 backdrop-blur shadow-xl rounded-xl p-3 border border-slate-100 z-50 text-xs font-medium space-y-2">
+                            Loading...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Top Banner -->
-        <div class="pt-6 px-4 max-w-6xl mx-auto">
+        <div class="pt-4 px-4 max-w-6xl mx-auto">
             <div class="glass-card rounded-3xl p-6 relative overflow-hidden flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b-4 border-theme-400">
                 <div class="absolute -right-5 -top-5 opacity-10 pointer-events-none text-theme-600">
                     <i data-lucide="waves" width="200" height="200"></i>
@@ -202,12 +249,12 @@
                         </span>
                         <span id="role-badge" class="text-xs font-bold px-3 py-1 rounded-full border flex items-center gap-1"></span>
                     </div>
-                    <h1 class="text-3xl md:text-4xl font-black text-slate-800 tracking-tight">
+                    <h1 class="text-3xl md:text-4xl font-black text-slate-800 tracking-tight" data-i18n="tripTitle">
                         Australia Family Trip 🦘
                     </h1>
                     <p class="text-slate-500 mt-2 flex items-center gap-4 text-sm font-bold">
                         <span class="flex items-center gap-1"><i data-lucide="calendar" width="16" class="text-theme-500"></i> Aug 14 - Aug 27</span>
-                        <span class="flex items-center gap-1"><i data-lucide="users" width="16" class="text-theme-500"></i> 4 People</span>
+                        <span class="flex items-center gap-1"><i data-lucide="users" width="16" class="text-theme-500"></i> <span data-i18n="people">4 People</span></span>
                         <span class="flex items-center gap-1"><i data-lucide="map-pin" width="16" class="text-theme-500"></i> SYD / GC / BNE</span>
                     </p>
                 </div>
@@ -218,16 +265,16 @@
         <div class="sticky top-4 z-40 my-6 px-4 flex justify-center">
             <div class="glass-card p-1.5 rounded-full flex gap-1 shadow-lg border border-white">
                 <button onclick="switchTab('overview')" id="btn-overview" class="nav-btn active flex items-center gap-2 px-5 py-2.5 rounded-full font-bold text-sm">
-                    <i data-lucide="layout-dashboard" width="18"></i> <span class="hidden sm:inline">Dashboard</span>
+                    <i data-lucide="layout-dashboard" width="18"></i> <span class="hidden sm:inline" data-i18n="tabDashboard">Dashboard</span>
                 </button>
                 <button onclick="switchTab('daily')" id="btn-daily" class="nav-btn flex items-center gap-2 px-5 py-2.5 rounded-full font-bold text-sm">
-                    <i data-lucide="map" width="18"></i> <span class="hidden sm:inline">Itinerary</span>
+                    <i data-lucide="map" width="18"></i> <span class="hidden sm:inline" data-i18n="tabItinerary">Itinerary</span>
                 </button>
                 <button onclick="switchTab('budget')" id="btn-budget" class="nav-btn flex items-center gap-2 px-5 py-2.5 rounded-full font-bold text-sm">
-                    <i data-lucide="wallet" width="18"></i> <span class="hidden sm:inline">Budget</span>
+                    <i data-lucide="wallet" width="18"></i> <span class="hidden sm:inline" data-i18n="tabBudget">Budget</span>
                 </button>
                 <button onclick="switchTab('advisories')" id="btn-advisories" class="nav-btn flex items-center gap-2 px-5 py-2.5 rounded-full font-bold text-sm">
-                    <i data-lucide="info" width="18"></i> <span class="hidden sm:inline">Info</span>
+                    <i data-lucide="info" width="18"></i> <span class="hidden sm:inline" data-i18n="tabInfo">Info</span>
                 </button>
             </div>
         </div>
@@ -256,8 +303,8 @@
                     <div onclick="switchTab('daily')" class="glass-card rounded-3xl p-6 border border-white flex items-center gap-4 cursor-pointer hover:-translate-y-1 hover:shadow-lg transition-all hover:border-theme-200 group relative">
                         <div class="bg-theme-100 p-4 rounded-2xl text-theme-600 group-hover:scale-110 transition-transform"><i data-lucide="calendar-days" width="28"></i></div>
                         <div>
-                            <div class="text-3xl font-black text-slate-800">14<span class="text-lg font-bold text-slate-500"> Days</span></div>
-                            <div class="text-sm font-bold text-theme-600">3 Major Cities</div>
+                            <div class="text-3xl font-black text-slate-800">14<span class="text-lg font-bold text-slate-500" data-i18n="days"> Days</span></div>
+                            <div class="text-sm font-bold text-theme-600" data-i18n="cities">3 Major Cities</div>
                         </div>
                         <i data-lucide="arrow-right" class="absolute top-4 right-4 text-theme-300 opacity-0 group-hover:opacity-100 transition-opacity"></i>
                     </div>
@@ -265,14 +312,14 @@
                         <div class="bg-accent-100 p-4 rounded-2xl text-accent-600 group-hover:scale-110 transition-transform"><i data-lucide="car-front" width="28"></i></div>
                         <div>
                             <div class="text-xl font-black text-slate-800">MG ZS SUV</div>
-                            <div class="text-sm font-bold text-accent-600">Gold Coast Road Trip</div>
+                            <div class="text-sm font-bold text-accent-600" data-i18n="roadTrip">Gold Coast Road Trip</div>
                         </div>
                         <i data-lucide="arrow-right" class="absolute top-4 right-4 text-accent-300 opacity-0 group-hover:opacity-100 transition-opacity"></i>
                     </div>
                     <div onclick="switchTab('budget')" class="glass-card rounded-3xl p-6 border border-white flex items-center gap-4 cursor-pointer hover:-translate-y-1 hover:shadow-lg transition-all hover:border-emerald-200 group relative">
                         <div class="bg-emerald-100 p-4 rounded-2xl text-emerald-600 group-hover:scale-110 transition-transform"><i data-lucide="circle-dollar-sign" width="28"></i></div>
                         <div>
-                            <div class="text-xs font-bold text-slate-400 mb-1">Est. Total (TWD)</div>
+                            <div class="text-xs font-bold text-slate-400 mb-1" data-i18n="estTotal">Est. Total (TWD)</div>
                             <div id="overview-budget-total" class="text-2xl font-black text-slate-800">Calculating...</div>
                         </div>
                         <i data-lucide="arrow-right" class="absolute top-4 right-4 text-emerald-300 opacity-0 group-hover:opacity-100 transition-opacity"></i>
@@ -282,7 +329,7 @@
                 <!-- Navigation Hub -->
                 <div class="glass-card rounded-3xl p-6 md:p-8 border border-white">
                     <h3 class="text-xl font-black text-slate-800 mb-6 flex items-center gap-2">
-                        <i data-lucide="navigation" class="text-theme-500"></i> Key Locations & Navigation
+                        <i data-lucide="navigation" class="text-theme-500"></i> <span data-i18n="navHub">Key Locations & Navigation</span>
                     </h3>
                     <div id="mapcode-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                         <!-- Populated by JS -->
@@ -295,10 +342,10 @@
                 <div class="glass-card rounded-3xl p-4 md:p-8 border border-white">
                     <div class="flex justify-between items-end mb-8 border-b border-slate-100 pb-4">
                         <div>
-                            <h2 class="text-2xl font-black text-slate-800">Daily Itinerary</h2>
-                            <p class="text-sm text-slate-500 mt-1" id="daily-edit-hint">Click text to edit. Changes sync automatically.</p>
+                            <h2 class="text-2xl font-black text-slate-800" data-i18n="dailyItinerary">Daily Itinerary</h2>
+                            <p class="text-sm text-slate-500 mt-1" id="daily-edit-hint" data-i18n="editHint">Click text to edit. Changes sync automatically.</p>
                         </div>
-                        <button onclick="toggleAllDays()" class="text-theme-600 hover:bg-theme-50 px-4 py-2 rounded-full font-bold text-sm transition-colors shadow-sm border border-theme-100">
+                        <button onclick="toggleAllDays()" class="text-theme-600 hover:bg-theme-50 px-4 py-2 rounded-full font-bold text-sm transition-colors shadow-sm border border-theme-100" data-i18n="expandAll">
                             Expand / Collapse
                         </button>
                     </div>
@@ -311,23 +358,23 @@
                 <div class="glass-card rounded-3xl p-4 md:p-8 border border-white">
                     <div class="flex items-center gap-3 mb-6">
                         <div class="p-2 bg-emerald-100 rounded-xl text-emerald-600"><i data-lucide="calculator" width="24"></i></div>
-                        <h2 class="text-2xl font-black text-slate-800">Budget Estimation (TWD)</h2>
+                        <h2 class="text-2xl font-black text-slate-800" data-i18n="budgetEst">Budget Estimation (TWD)</h2>
                     </div>
                     
                     <div class="overflow-x-auto bg-white rounded-2xl border border-slate-100 shadow-sm">
                         <table class="w-full text-left">
                             <thead>
                                 <tr class="bg-slate-50 text-slate-500 text-sm border-b border-slate-100">
-                                    <th class="py-4 pl-6 font-bold w-1/4">Category</th>
-                                    <th class="py-4 font-bold w-1/4 text-right pr-4">Amount (TWD)</th>
-                                    <th class="py-4 font-bold">Notes</th>
+                                    <th class="py-4 pl-6 font-bold w-1/4" data-i18n="category">Category</th>
+                                    <th class="py-4 font-bold w-1/4 text-right pr-4" data-i18n="amount">Amount (TWD)</th>
+                                    <th class="py-4 font-bold" data-i18n="notes">Notes</th>
                                     <th class="py-4 w-12"></th>
                                 </tr>
                             </thead>
                             <tbody id="budget-tbody" class="divide-y divide-slate-50"></tbody>
                             <tfoot class="bg-emerald-50 border-t-2 border-emerald-100">
                                 <tr>
-                                    <td class="py-5 pl-6 font-black text-emerald-900">Total Estimate</td>
+                                    <td class="py-5 pl-6 font-black text-emerald-900" data-i18n="totalEst">Total Estimate</td>
                                     <td class="py-5 font-black text-2xl text-emerald-600 font-mono text-right pr-4" id="budget-total">NT$ 0</td>
                                     <td colspan="2"></td>
                                 </tr>
@@ -336,7 +383,7 @@
                     </div>
                     <div id="budget-add-container" class="mt-4 hidden">
                         <button onclick="addBudgetItem()" class="flex items-center gap-2 text-emerald-600 hover:bg-emerald-50 border border-emerald-100 px-4 py-2 rounded-full font-bold text-sm transition-colors shadow-sm">
-                            <i data-lucide="plus" width="16"></i> Add Item
+                            <i data-lucide="plus" width="16"></i> <span data-i18n="addItem">Add Item</span>
                         </button>
                     </div>
                 </div>
@@ -347,17 +394,17 @@
                 
                 <div class="glass-card rounded-3xl p-6 md:p-8 border border-white">
                     <h3 class="text-xl font-black text-slate-800 mb-6 flex items-center gap-2">
-                        <i data-lucide="thermometer" class="text-accent-500"></i> August Temperature: Sydney vs Gold Coast
+                        <i data-lucide="thermometer" class="text-accent-500"></i> <span data-i18n="weatherTitle">August Temp: SYD vs GC</span>
                     </h3>
                     <div class="relative h-[280px] w-full"><canvas id="tempChart"></canvas></div>
-                    <p class="text-center text-sm text-slate-500 mt-4 font-bold">August is late winter in Australia. Mornings/evenings are chilly, especially in Sydney.</p>
+                    <p class="text-center text-sm text-slate-500 mt-4 font-bold" data-i18n="weatherNote">August is late winter in Australia. Mornings/evenings are chilly, especially in Sydney.</p>
                 </div>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="glass-card rounded-3xl p-6 border border-white shadow-sm hover:shadow-md transition-shadow">
                         <div class="flex justify-between items-center mb-6">
                             <h3 class="font-black text-lg text-theme-600 flex items-center gap-2">
-                                <i data-lucide="clipboard-check" width="20"></i> Pre-Trip Checklist
+                                <i data-lucide="clipboard-check" width="20"></i> <span data-i18n="checklist">Pre-Trip Checklist</span>
                             </h3>
                             <button id="btn-add-outfit" onclick="addAdvisoryItem('outfit')" class="hidden bg-theme-50 text-theme-600 hover:bg-theme-100 border border-theme-200 px-3 py-1.5 rounded-full text-xs font-bold transition-colors">+ Add</button>
                         </div>
@@ -367,7 +414,7 @@
                     <div class="glass-card rounded-3xl p-6 border border-white shadow-sm hover:shadow-md transition-shadow">
                         <div class="flex justify-between items-center mb-6">
                             <h3 class="font-black text-lg text-accent-600 flex items-center gap-2">
-                                <i data-lucide="car-front" width="20"></i> Logistics & Driving
+                                <i data-lucide="car-front" width="20"></i> <span data-i18n="logistics">Logistics & Driving</span>
                             </h3>
                             <button id="btn-add-drive" onclick="addAdvisoryItem('drive')" class="hidden bg-accent-50 text-accent-600 hover:bg-accent-100 border border-accent-200 px-3 py-1.5 rounded-full text-xs font-bold transition-colors">+ Add</button>
                         </div>
@@ -378,17 +425,131 @@
         </main>
     </div> <!-- /#app-content -->
 
-    <!-- Firebase & Logic -->
+    <!-- Firebase, Logic & Widgets -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+        // ==========================================
+        // i18n Dictionaries
+        // ==========================================
+        const translations = {
+            "en": {
+                accessDenied: "Access Denied", invalidPassword: "Invalid password.<br>Please try again.", retry: "Retry",
+                tripTitle: "Australia Family Trip 🦘", people: "4 People",
+                tabDashboard: "Dashboard", tabItinerary: "Itinerary", tabBudget: "Budget", tabInfo: "Info",
+                days: " Days", cities: "3 Major Cities", roadTrip: "Gold Coast Road Trip", estTotal: "Est. Total (TWD)",
+                navHub: "Key Locations & Navigation", dailyItinerary: "Daily Itinerary", editHint: "Click text to edit. Changes sync automatically.", expandAll: "Expand / Collapse",
+                budgetEst: "Budget Estimation (TWD)", category: "Category", amount: "Amount (TWD)", notes: "Notes", totalEst: "Total Estimate", addItem: "Add Item",
+                weatherTitle: "August Temp: SYD vs GC", weatherNote: "August is late winter in Australia. Mornings/evenings are chilly, especially in Sydney.",
+                checklist: "Pre-Trip Checklist", logistics: "Logistics & Driving",
+                roleEditor: "Editor", roleViewer: "Viewer", syncSaved: "Synced", syncSaving: "Saving...", syncOffline: "Offline"
+            },
+            "zh-TW": {
+                accessDenied: "權限不足", invalidPassword: "密碼錯誤。<br>請重新登入。", retry: "重新輸入",
+                tripTitle: "2026 澳洲家庭之旅 🦘", people: "4 人",
+                tabDashboard: "儀表板", tabItinerary: "日程表", tabBudget: "預算", tabInfo: "資訊",
+                days: " 天", cities: "3 個主要城市", roadTrip: "黃金海岸公路旅行", estTotal: "預估總旅費 (TWD)",
+                navHub: "重點導航庫 (Google Maps)", dailyItinerary: "詳細日程表", editHint: "點擊文字編輯，自動同步至雲端。", expandAll: "展開 / 收合",
+                budgetEst: "旅費預算估算表 (TWD)", category: "項目分類", amount: "預估金額 (TWD)", notes: "備註說明", totalEst: "總計預估", addItem: "新增項目",
+                weatherTitle: "8月氣溫對比：雪梨 vs 黃金海岸", weatherNote: "澳洲 8 月為冬末初春，早晚溫差大，雪梨請備妥保暖衣物。",
+                checklist: "行前與穿搭檢核", logistics: "自駕與物流提示",
+                roleEditor: "編輯模式", roleViewer: "唯讀模式", syncSaved: "雲端已同步", syncSaving: "儲存中...", syncOffline: "離線/失敗"
+            },
+            "ja": {
+                accessDenied: "アクセス拒否", invalidPassword: "パスワードが無効です。<br>もう一度お試しください。", retry: "再入力",
+                tripTitle: "オーストラリア 家族旅行 🦘", people: "4 人",
+                tabDashboard: "ダッシュボード", tabItinerary: "スケジュール", tabBudget: "予算", tabInfo: "情報",
+                days: " 日間", cities: "3 主要都市", roadTrip: "ゴールドコースト ドライブ", estTotal: "予想合計 (TWD)",
+                navHub: "主要な目的地とナビ", dailyItinerary: "詳細スケジュール", editHint: "クリックして編集。自動同期されます。", expandAll: "展開 / 縮小",
+                budgetEst: "予算見積もり (TWD)", category: "カテゴリー", amount: "金額 (TWD)", notes: "備考", totalEst: "合計見積もり", addItem: "追加",
+                weatherTitle: "8月の気温: シドニー vs ゴールドコースト", weatherNote: "オーストラリアの8月は晩冬です。特にシドニーの朝晩は冷え込みます。",
+                checklist: "出発前チェックリスト", logistics: "ドライブと移動のヒント",
+                roleEditor: "編集者", roleViewer: "閲覧者", syncSaved: "同期完了", syncSaving: "保存中...", syncOffline: "オフライン"
+            }
+        };
+
+        window.changeLanguage = function(lang) {
+            localStorage.setItem('dashboard_lang', lang);
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (translations[lang] && translations[lang][key]) {
+                    if (el.tagName.toLowerCase() === 'input' && el.type === 'button') el.value = translations[lang][key];
+                    else el.innerHTML = translations[lang][key];
+                }
+            });
+            // Update roles and sync text
+            if (window.applyRoleUI) window.applyRoleUI();
+            if (window.lastSyncStatus) window.updateStatus(window.lastSyncStatus);
+        }
+
+        // ==========================================
+        // Live Widgets (Weather & Exchange Rate)
+        // ==========================================
+        async function initWidgets() {
+            // 1. Exchange Rate (AUD to TWD) via Free API
+            try {
+                const exRes = await fetch('https://open.er-api.com/v6/latest/AUD');
+                const exData = await exRes.json();
+                if(exData && exData.rates && exData.rates.TWD) {
+                    document.getElementById('exchange-rate-display').innerText = `1 AUD ≈ ${exData.rates.TWD.toFixed(2)} TWD`;
+                }
+            } catch(e) { console.log('Exchange rate fetch failed'); }
+
+            // 2. Weather Forecast (Sydney & Gold Coast) via Open-Meteo
+            const fetchWeather = async (lat, lon, idPrefix) => {
+                try {
+                    const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&daily=temperature_2m_max,temperature_2m_min,weathercode&timezone=auto&forecast_days=3`);
+                    const data = await res.json();
+                    
+                    // Weather Code to Emoji (Simple map)
+                    const getWeatherEmoji = (code) => {
+                        if (code <= 1) return '☀️';
+                        if (code <= 3) return '🌤️';
+                        if (code <= 48) return '☁️';
+                        if (code <= 67) return '🌧️';
+                        if (code <= 77) return '❄️';
+                        return '⛈️';
+                    };
+
+                    // Current
+                    const currTemp = Math.round(data.current_weather.temperature);
+                    const currIcon = getWeatherEmoji(data.current_weather.weathercode);
+                    document.getElementById(`weather-${idPrefix}`).innerHTML = `${currIcon} ${currTemp}°C`;
+
+                    // 3-Day Forecast Tooltip
+                    let tooltipHTML = `<div class="font-bold border-b pb-1 mb-1">3-Day Forecast</div>`;
+                    for(let i=0; i<3; i++) {
+                        const date = new Date(data.daily.time[i]).toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric'});
+                        const max = Math.round(data.daily.temperature_2m_max[i]);
+                        const min = Math.round(data.daily.temperature_2m_min[i]);
+                        const icon = getWeatherEmoji(data.daily.weathercode[i]);
+                        tooltipHTML += `<div class="flex justify-between items-center"><span>${date} ${icon}</span> <span>${min}° ~ ${max}°</span></div>`;
+                    }
+                    document.getElementById(`weather-${idPrefix}-tooltip`).innerHTML = tooltipHTML;
+
+                } catch(e) { console.log('Weather fetch failed'); }
+            };
+
+            // Coordinates: Sydney(-33.8688, 151.2093), Gold Coast(-28.0167, 153.4000)
+            fetchWeather(-33.8688, 151.2093, 'syd');
+            fetchWeather(-28.0167, 153.4000, 'gc');
+        }
+
+        // ==========================================
+        // Application Init & Firebase
+        // ==========================================
         if (!window.isAuthenticated) {
             console.log("Auth failed. Scripts halted.");
         } else {
             document.getElementById('app-content').style.display = 'block';
 
-            // Shared Firebase Config
+            // Apply saved language or default to zh-TW
+            const savedLang = localStorage.getItem('dashboard_lang') || 'zh-TW';
+            document.getElementById('lang-selector').value = savedLang;
+            window.changeLanguage(savedLang);
+            initWidgets(); // Start fetching live data
+
             const firebaseConfig = {
                 apiKey: "AIzaSyBQagGqyfWGkwwibgsnyZ69eNRjOHIenM0",
                 authDomain: "summer-japan-trip.firebaseapp.com",
@@ -400,7 +561,7 @@
 
             const app = initializeApp(firebaseConfig);
             const db = getFirestore(app);
-            const DOC_ID = "2026_summer_australia_trip"; // Dedicated ID for Australia
+            const DOC_ID = "2026_summer_australia_trip";
 
             window.ITINERARY_DATA = [];
             window.OUTFIT_TIPS = [];
@@ -410,34 +571,35 @@
             // --- Default Data: Australia 2026 ---
             const DEFAULT_ITINERARY_DATA = [
                 { day: 1, date: "2026/08/14 (Fri)", city: "Singapore", title: "Transit & Jewel Changi", icon: "plane", weather: "Tropical 28°C", highlights: ["Fly Scoot TR867", "Jewel Rain Vortex", "Song Fa Bak Kut Teh"], stay: "Overnight Flight", transport: "Flight (TPE ➔ SIN)", details: [ { id: 101, time: "16:15", action: "Flight TR867 Departs (TPE T1)", type: "transport", location: "Taiwan Taoyuan International Airport" }, { id: 102, time: "20:45", action: "Arrive at Changi Airport (SIN)", type: "transport", location: "Singapore Changi Airport" }, { id: 103, time: "21:00", action: "Jewel Changi: Watch Rain Vortex Light Show", type: "activity", location: "Jewel Changi Airport" }, { id: 104, time: "21:30", action: "Dinner: Song Fa Bak Kut Teh (Pepper Soup)", type: "food", location: "Song Fa Bak Kut Teh Jewel Changi Airport" } ] },
-                { day: 2, date: "2026/08/15 (Sat)", city: "Sydney", title: "Arrival & City Walk", icon: "building", weather: "Cool 15°C", highlights: ["Arrive SYD", "Hyde Park", "QVB & Chinatown"], stay: "Meriton Suites Pitt Street", transport: "Flight (SIN ➔ SYD), UberXL", details: [ { id: 201, time: "02:10", action: "Flight TR10 Departs (SIN T1)", type: "transport", location: "" }, { id: 202, time: "11:45", action: "Arrive at Sydney (SYD T1)", type: "transport", location: "Sydney Airport" }, { id: 203, time: "13:00", action: "UberXL to Hotel (~30 mins)", type: "transport", location: "" }, { id: 204, time: "13:40", action: "Check-in: Meriton Suites Pitt Street", type: "stay", location: "Meriton Suites Pitt Street" }, { id: 205, time: "15:00", action: "City Walk: Hyde Park & St Mary's Cathedral", type: "activity", location: "St Mary's Cathedral, Sydney" }, { id: 206, time: "16:30", action: "Afternoon Tea: The Grounds of the City", type: "food", location: "The Grounds of the City" }, { id: 207, time: "17:30", action: "Shopping: QVB & Chinatown walk", type: "shopping", location: "Queen Victoria Building" } ] },
-                { day: 3, date: "2026/08/16 (Sun)", city: "Sydney", title: "Harbour Visual Feast", icon: "ship", weather: "Sunny 16°C", highlights: ["Fish Market", "Opera House", "Manly Ferry"], stay: "Meriton Suites Pitt Street", transport: "Light Rail / Ferry (Opal Pay)", details: [ { id: 301, time: "08:30", action: "Brunch: Sydney Fish Market (Arrive early)", type: "food", location: "Sydney Fish Market" }, { id: 302, time: "11:00", action: "Walk: Darling Harbour to The Rocks", type: "activity", location: "Darling Harbour" }, { id: 303, time: "13:30", action: "Explore: Sydney Opera House (Close up)", type: "activity", location: "Sydney Opera House" }, { id: 304, time: "15:30", action: "Ferry: Circular Quay to Manly Beach", type: "transport", location: "Circular Quay" }, { id: 305, time: "17:30", action: "Ferry Return: View Luna Park neon lights", type: "activity", location: "Luna Park Sydney" }, { id: 306, time: "19:00", action: "Dinner: Cafe Sydney (Harbour view) or Mamak", type: "food", location: "Cafe Sydney" } ] },
-                { day: 4, date: "2026/08/17 (Mon)", city: "Blue Mtns", title: "Vertical Forest Exploration", icon: "mountain", weather: "Cold 10°C", highlights: ["Scenic World", "Three Sisters", "The Yellow Deli"], stay: "Meriton Suites Pitt Street", transport: "Train (T1/BMT Line)", details: [ { id: 401, time: "08:00", action: "Train: Sydney Central to Katoomba (~2hr)", type: "transport", location: "Central Station" }, { id: 402, time: "10:30", action: "Scenic World: Red Railway & Rainforest Walk", type: "activity", location: "Scenic World" }, { id: 403, time: "12:30", action: "Scenic World: Blue Cableway & Yellow Skyway", type: "activity", location: "" }, { id: 404, time: "13:30", action: "Viewpoint: Three Sisters Rock", type: "activity", location: "Echo Point Lookout (Three Sisters)" }, { id: 405, time: "14:30", action: "Late Lunch: The Yellow Deli (Wooden interior)", type: "food", location: "The Yellow Deli Katoomba" }, { id: 406, time: "16:30", action: "Train: Return to Sydney City", type: "transport", location: "" } ] },
+                { day: 2, date: "2026/08/15 (Sat)", city: "Sydney", title: "Arrival & City Walk", icon: "building", weather: "Cool 15°C", highlights: ["Arrive SYD", "Hyde Park", "QVB & Chinatown"], stay: "Meriton Suites Pitt Street", transport: "Flight (SIN ➔ SYD), UberXL", details: [ { id: 201, time: "02:10", action: "Flight TR10 Departs (SIN T1)", type: "transport", location: "" }, { id: 202, time: "11:45", action: "Arrive at Sydney (SYD T1)", type: "transport", location: "Sydney Airport" }, { id: 203, time: "13:00", action: "UberXL to Hotel (~30 mins)", type: "transport", location: "" }, { id: 204, time: "13:40", action: "Check-in: Meriton Suites Pitt Street", type: "stay", location: "Meriton Suites Pitt Street, 329 Pitt St, Sydney NSW 2000, Australia" }, { id: 205, time: "15:00", action: "City Walk: Hyde Park & St Mary's Cathedral", type: "activity", location: "St Mary's Cathedral, Sydney" }, { id: 206, time: "16:30", action: "Afternoon Tea: The Grounds of the City", type: "food", location: "The Grounds of the City, George St, Sydney" }, { id: 207, time: "17:30", action: "Shopping: QVB & Chinatown walk", type: "shopping", location: "Queen Victoria Building" } ] },
+                { day: 3, date: "2026/08/16 (Sun)", city: "Sydney", title: "Harbour Visual Feast", icon: "ship", weather: "Sunny 16°C", highlights: ["Fish Market", "Opera House", "Manly Ferry"], stay: "Meriton Suites Pitt Street", transport: "Light Rail / Ferry (Opal Pay)", details: [ { id: 301, time: "08:30", action: "Brunch: Sydney Fish Market (Arrive early)", type: "food", location: "Sydney Fish Market, Pyrmont" }, { id: 302, time: "11:00", action: "Walk: Darling Harbour to The Rocks", type: "activity", location: "Darling Harbour" }, { id: 303, time: "13:30", action: "Explore: Sydney Opera House (Close up)", type: "activity", location: "Sydney Opera House" }, { id: 304, time: "15:30", action: "Ferry: Circular Quay to Manly Beach", type: "transport", location: "Circular Quay Wharf" }, { id: 305, time: "17:30", action: "Ferry Return: View Luna Park neon lights", type: "activity", location: "Luna Park Sydney" }, { id: 306, time: "19:00", action: "Dinner: Cafe Sydney (Harbour view) or Mamak", type: "food", location: "Cafe Sydney" } ] },
+                { day: 4, date: "2026/08/17 (Mon)", city: "Blue Mtns", title: "Vertical Forest Exploration", icon: "mountain", weather: "Cold 10°C", highlights: ["Scenic World", "Three Sisters", "The Yellow Deli"], stay: "Meriton Suites Pitt Street", transport: "Train (T1/BMT Line)", details: [ { id: 401, time: "08:00", action: "Train: Sydney Central to Katoomba (~2hr)", type: "transport", location: "Central Station, Sydney" }, { id: 402, time: "10:30", action: "Scenic World: Red Railway & Rainforest Walk", type: "activity", location: "Scenic World, Violet St, Katoomba NSW" }, { id: 403, time: "12:30", action: "Scenic World: Blue Cableway & Yellow Skyway", type: "activity", location: "" }, { id: 404, time: "13:30", action: "Viewpoint: Three Sisters Rock", type: "activity", location: "Echo Point Lookout (Three Sisters)" }, { id: 405, time: "14:30", action: "Late Lunch: The Yellow Deli (Wooden interior)", type: "food", location: "The Yellow Deli Katoomba" }, { id: 406, time: "16:30", action: "Train: Return to Sydney City", type: "transport", location: "" } ] },
                 { day: 5, date: "2026/08/18 (Tue)", city: "Sydney", title: "Academy & Coastal Views", icon: "camera", weather: "Sunny 17°C", highlights: ["Sydney Uni", "Bondi Beach", "SkyFeast"], stay: "Meriton Suites Pitt Street", transport: "Bus / Walk", details: [ { id: 501, time: "09:00", action: "Explore: University of Sydney (Hogwarts vibes)", type: "activity", location: "The University of Sydney" }, { id: 502, time: "12:30", action: "Bus: Head to Bondi Beach", type: "transport", location: "Bondi Beach" }, { id: 503, time: "13:30", action: "Lunch: Hurricane's Grill (Pork Ribs) or Betty's Burgers", type: "food", location: "Hurricane's Grill Bondi Beach" }, { id: 504, time: "15:00", action: "Photo Spot: Bondi Icebergs Pool", type: "activity", location: "Bondi Icebergs Club" }, { id: 505, time: "17:30", action: "Shopping: Westfield Sydney", type: "shopping", location: "Westfield Sydney" }, { id: 506, time: "19:00", action: "Dinner: SkyFeast at Sydney Tower ($A125 Buffet)", type: "food", location: "SkyFeast at Sydney Tower" } ] },
-                { day: 6, date: "2026/08/19 (Wed)", city: "Gold Coast", title: "City Transfer & Logistics", icon: "plane", weather: "Mild 20°C", highlights: ["Fly to OOL", "Rent MG ZS", "Pacific Fair"], stay: "Meriton Suites Broadbeach", transport: "Flight (VA519), Car Rental", details: [ { id: 601, time: "10:00", action: "Uber to SYD Airport", type: "transport", location: "" }, { id: 602, time: "12:20", action: "Flight VA519 Departs (SYD)", type: "transport", location: "" }, { id: 603, time: "13:40", action: "Arrive at Gold Coast (OOL)", type: "transport", location: "Gold Coast Airport" }, { id: 604, time: "14:30", action: "Rent Car: Alpha Car Hire (MG ZS SUV)", type: "transport", location: "Alpha Car Hire Gold Coast" }, { id: 605, time: "15:30", action: "Check-in: Meriton Suites Broadbeach", type: "stay", location: "Meriton Suites Broadbeach" }, { id: 606, time: "16:30", action: "Shopping: Pacific Fair (Supplies & Dinner)", type: "shopping", location: "Pacific Fair Shopping Centre" } ] },
-                { day: 7, date: "2026/08/20 (Thu)", city: "Gold Coast", title: "Action & Heroes at Movie World", icon: "ticket", weather: "Sunny 21°C", highlights: ["Movie World", "Stunt Show", "Harbour Town"], stay: "Meriton Suites Broadbeach", transport: "Drive (25 mins)", details: [ { id: 701, time: "09:30", action: "Drive to Warner Bros. Movie World", type: "transport", location: "Warner Bros. Movie World" }, { id: 702, time: "10:00", action: "Movie World: Rides & Superhero Meet", type: "activity", location: "" }, { id: 703, time: "13:30", action: "Show: Hollywood Stunt Driver", type: "activity", location: "" }, { id: 704, time: "16:00", action: "Shopping: Harbour Town Premium Outlets", type: "shopping", location: "Harbour Town Premium Outlets" }, { id: 705, time: "18:30", action: "Dinner: Gotham Grill (Theme Restaurant)", type: "food", location: "Gotham Grill" } ] },
-                { day: 8, date: "2026/08/21 (Fri)", city: "Gold Coast", title: "Marine Life & Whale Watching", icon: "waves", weather: "Sunny 22°C", highlights: ["Sea World", "Whale Watch Cruise", "Hatsuhana Sushi"], stay: "Meriton Suites Broadbeach", transport: "Drive (15 mins)", details: [ { id: 801, time: "09:30", action: "Drive to Sea World Gold Coast", type: "transport", location: "Sea World" }, { id: 802, time: "10:00", action: "Sea World: Dolphins, Penguins, Polar Bears", type: "activity", location: "" }, { id: 803, time: "12:30", action: "Lunch: Hatsuhana Japanese (Inside Park)", type: "food", location: "Hatsuhana Japanese Restaurant" }, { id: 804, time: "14:00", action: "Activity: Whale Watching Cruise (Departs from Park)", type: "activity", location: "" }, { id: 805, time: "18:00", action: "Dinner: Broadbeach Local Area", type: "food", location: "Broadbeach" } ] },
+                { day: 6, date: "2026/08/19 (Wed)", city: "Gold Coast", title: "City Transfer & Logistics", icon: "plane", weather: "Mild 20°C", highlights: ["Fly to OOL", "Rent MG ZS", "Pacific Fair"], stay: "Meriton Suites Broadbeach", transport: "Flight (VA519), Car Rental", details: [ { id: 601, time: "10:00", action: "Uber to SYD Airport", type: "transport", location: "Sydney Airport" }, { id: 602, time: "12:20", action: "Flight VA519 Departs (SYD)", type: "transport", location: "" }, { id: 603, time: "13:40", action: "Arrive at Gold Coast (OOL)", type: "transport", location: "Gold Coast Airport" }, { id: 604, time: "14:30", action: "Rent Car: Alpha Car Hire (MG ZS SUV)", type: "transport", location: "Alpha Car Hire Gold Coast" }, { id: 605, time: "15:30", action: "Check-in: Meriton Suites Broadbeach", type: "stay", location: "Meriton Suites Broadbeach, 2669 Gold Coast Hwy" }, { id: 606, time: "16:30", action: "Shopping: Pacific Fair (Supplies & Dinner)", type: "shopping", location: "Pacific Fair Shopping Centre" } ] },
+                { day: 7, date: "2026/08/20 (Thu)", city: "Gold Coast", title: "Action & Heroes at Movie World", icon: "ticket", weather: "Sunny 21°C", highlights: ["Movie World", "Stunt Show", "Harbour Town"], stay: "Meriton Suites Broadbeach", transport: "Drive (25 mins)", details: [ { id: 701, time: "09:30", action: "Drive to Warner Bros. Movie World", type: "transport", location: "Warner Bros. Movie World" }, { id: 702, time: "10:00", action: "Movie World: Rides & Superhero Meet", type: "activity", location: "" }, { id: 703, time: "13:30", action: "Show: Hollywood Stunt Driver", type: "activity", location: "" }, { id: 704, time: "16:00", action: "Shopping: Harbour Town Premium Outlets", type: "shopping", location: "Harbour Town Premium Outlets" }, { id: 705, time: "18:30", action: "Dinner: Gotham Grill (Theme Restaurant)", type: "food", location: "Gotham Grill, Movie World" } ] },
+                { day: 8, date: "2026/08/21 (Fri)", city: "Gold Coast", title: "Marine Life & Whale Watching", icon: "waves", weather: "Sunny 22°C", highlights: ["Sea World", "Whale Watch Cruise", "Hatsuhana Sushi"], stay: "Meriton Suites Broadbeach", transport: "Drive (15 mins)", details: [ { id: 801, time: "09:30", action: "Drive to Sea World Gold Coast", type: "transport", location: "Sea World Gold Coast" }, { id: 802, time: "10:00", action: "Sea World: Dolphins, Penguins, Polar Bears", type: "activity", location: "" }, { id: 803, time: "12:30", action: "Lunch: Hatsuhana Japanese (Inside Park)", type: "food", location: "Hatsuhana Japanese Restaurant" }, { id: 804, time: "14:00", action: "Activity: Whale Watching Cruise (Departs from Park)", type: "activity", location: "" }, { id: 805, time: "18:00", action: "Dinner: Broadbeach Local Area", type: "food", location: "Broadbeach QLD" } ] },
                 { day: 9, date: "2026/08/22 (Sat)", city: "Gold Coast", title: "Surfers Paradise & High Views", icon: "sun", weather: "Sunny 21°C", highlights: ["Surfers Paradise Sign", "SkyPoint", "Beach Markets"], stay: "Meriton Suites Broadbeach", transport: "Drive / Walk", details: [ { id: 901, time: "10:00", action: "Photo Spot: Surfers Paradise Beach Sign", type: "activity", location: "Surfers Paradise Beach" }, { id: 902, time: "11:30", action: "Observation Deck: SkyPoint 77F", type: "activity", location: "SkyPoint Observation Deck" }, { id: 903, time: "13:30", action: "Lunch: Vapiano (Fresh Pasta)", type: "food", location: "Vapiano Surfers Paradise" }, { id: 904, time: "16:00", action: "Explore: Beachfront Markets (Weekend Crafts)", type: "shopping", location: "Surfers Paradise Beachfront Markets" }, { id: 905, time: "17:30", action: "Sunset Drink: SkyPoint Bar", type: "activity", location: "" } ] },
-                { day: 10, date: "2026/08/23 (Sun)", city: "Gold Coast", title: "Aussie Farm Experience", icon: "tree-pine", weather: "Sunny 20°C", highlights: ["Paradise Country", "Koala Photos", "HOTA"], stay: "Meriton Suites Broadbeach", transport: "Drive (25 mins)", details: [ { id: 1001, time: "09:30", action: "Drive to Paradise Country", type: "transport", location: "Paradise Country" }, { id: 1002, time: "10:30", action: "Farm Experience: Koala holding & Sheep shearing", type: "activity", location: "" }, { id: 1003, time: "14:00", action: "Art & Culture: HOTA (Home of the Arts)", type: "activity", location: "HOTA, Home of the Arts" }, { id: 1004, time: "18:00", action: "Dinner: The Collective Palm Beach", type: "food", location: "The Collective Palm Beach" } ] },
-                { day: 11, date: "2026/08/24 (Mon)", city: "Brisbane", title: "Brisbane City Day Trip", icon: "building", weather: "Mild 23°C", highlights: ["Queen St Mall", "Lone Pine Koalas", "Mt Coot-tha"], stay: "Meriton Suites Broadbeach", transport: "Drive via M1 (75 mins)", details: [ { id: 1101, time: "08:30", action: "Drive to Brisbane via M1 Highway", type: "transport", location: "" }, { id: 1102, time: "10:00", action: "Shopping: Queen Street Mall", type: "shopping", location: "Queen Street Mall" }, { id: 1103, time: "12:30", action: "Lunch: Grill'd (Healthy Burgers)", type: "food", location: "Grill'd South Bank" }, { id: 1104, time: "14:00", action: "Animals: Lone Pine Koala Sanctuary", type: "activity", location: "Lone Pine Koala Sanctuary" }, { id: 1105, time: "17:00", action: "Night View: Mount Coot-tha Lookout", type: "activity", location: "Mount Coot-tha Lookout" }, { id: 1106, time: "18:30", action: "Dinner: Eat Street Northshore (Check if open Mon)", type: "food", location: "Eat Street Northshore" } ] },
-                { day: 12, date: "2026/08/25 (Tue)", city: "Gold Coast", title: "Wrap-up & Airport Hotel", icon: "car", weather: "Sunny 21°C", highlights: ["Return Car", "Coolangatta", "Rydges Hotel"], stay: "Rydges GC Airport Hotel", transport: "Drive, Uber", details: [ { id: 1201, time: "09:30", action: "Morning: Free time for Beach/Shopping", type: "activity", location: "" }, { id: 1202, time: "14:00", action: "Car Return: Alpha Car Hire", type: "transport", location: "Alpha Car Hire Gold Coast" }, { id: 1203, time: "15:00", action: "Check-in: Rydges GC Airport Hotel", type: "stay", location: "Rydges Gold Coast Airport" }, { id: 1204, time: "16:00", action: "Walk: Coolangatta & Kirra Beach", type: "activity", location: "Kirra Beach" }, { id: 1205, time: "17:00", action: "Final Shopping: Woolworths (TimTams)", type: "shopping", location: "Woolworths Coolangatta" }, { id: 1206, time: "18:30", action: "Dinner: The Salty Fox (Rooftop runway view)", type: "food", location: "The Salty Fox Rooftop Bar" } ] },
+                { day: 10, date: "2026/08/23 (Sun)", city: "Gold Coast", title: "Aussie Farm Experience", icon: "tree-pine", weather: "Sunny 20°C", highlights: ["Paradise Country", "Koala Photos", "HOTA"], stay: "Meriton Suites Broadbeach", transport: "Drive (25 mins)", details: [ { id: 1001, time: "09:30", action: "Drive to Paradise Country", type: "transport", location: "Paradise Country, Oxenford" }, { id: 1002, time: "10:30", action: "Farm Experience: Koala holding & Sheep shearing", type: "activity", location: "" }, { id: 1003, time: "14:00", action: "Art & Culture: HOTA (Home of the Arts)", type: "activity", location: "HOTA, Home of the Arts" }, { id: 1004, time: "18:00", action: "Dinner: The Collective Palm Beach", type: "food", location: "The Collective Palm Beach" } ] },
+                { day: 11, date: "2026/08/24 (Mon)", city: "Brisbane", title: "Brisbane City Day Trip", icon: "building", weather: "Mild 23°C", highlights: ["Queen St Mall", "Lone Pine Koalas", "Mt Coot-tha"], stay: "Meriton Suites Broadbeach", transport: "Drive via M1 (75 mins)", details: [ { id: 1101, time: "08:30", action: "Drive to Brisbane via M1 Highway", type: "transport", location: "" }, { id: 1102, time: "10:00", action: "Shopping: Queen Street Mall", type: "shopping", location: "Queen Street Mall, Brisbane" }, { id: 1103, time: "12:30", action: "Lunch: Grill'd (Healthy Burgers)", type: "food", location: "Grill'd South Bank" }, { id: 1104, time: "14:00", action: "Animals: Lone Pine Koala Sanctuary", type: "activity", location: "Lone Pine Koala Sanctuary, Fig Tree Pocket" }, { id: 1105, time: "17:00", action: "Night View: Mount Coot-tha Lookout", type: "activity", location: "Mount Coot-tha Lookout" }, { id: 1106, time: "18:30", action: "Dinner: Eat Street Northshore (Check if open Mon)", type: "food", location: "Eat Street Northshore" } ] },
+                { day: 12, date: "2026/08/25 (Tue)", city: "Gold Coast", title: "Wrap-up & Airport Hotel", icon: "car", weather: "Sunny 21°C", highlights: ["Return Car", "Coolangatta", "Rydges Hotel"], stay: "Rydges GC Airport Hotel", transport: "Drive, Uber", details: [ { id: 1201, time: "09:30", action: "Morning: Free time for Beach/Shopping", type: "activity", location: "" }, { id: 1202, time: "14:00", action: "Car Return: Alpha Car Hire", type: "transport", location: "Alpha Car Hire Gold Coast" }, { id: 1203, time: "15:00", action: "Check-in: Rydges GC Airport Hotel", type: "stay", location: "Rydges Gold Coast Airport" }, { id: 1204, time: "16:00", action: "Walk: Coolangatta & Kirra Beach", type: "activity", location: "Kirra Beach, QLD" }, { id: 1205, time: "17:00", action: "Final Shopping: Woolworths (TimTams)", type: "shopping", location: "Woolworths Coolangatta" }, { id: 1206, time: "18:30", action: "Dinner: The Salty Fox (Rooftop runway view)", type: "food", location: "The Salty Fox Rooftop Bar" } ] },
                 { day: 13, date: "2026/08/26 (Wed)", city: "Transit", title: "Farewell Australia", icon: "plane", weather: "-", highlights: ["VA504 to SYD", "TR11 to SIN", "Changi Transfit"], stay: "Overnight Flight", transport: "Flights", details: [ { id: 1301, time: "05:00", action: "Walk to GC Airport Terminal (Right across street)", type: "transport", location: "Gold Coast Airport" }, { id: 1302, time: "07:05", action: "Flight VA504 Departs (OOL)", type: "transport", location: "" }, { id: 1303, time: "08:35", action: "Arrive at Sydney (SYD)", type: "transport", location: "" }, { id: 1304, time: "13:00", action: "Flight TR11 Departs (SYD)", type: "transport", location: "" }, { id: 1305, time: "19:30", action: "Arrive at Singapore (SIN) - 5.5hr Layover", type: "transport", location: "" }, { id: 1306, time: "20:00", action: "Changi T3: Bacha Coffee & Shake Shack", type: "food", location: "Bacha Coffee Changi T3" } ] },
                 { day: 14, date: "2026/08/27 (Thu)", city: "Home", title: "Arrive in Taiwan", icon: "home", weather: "-", highlights: ["Fly TR866", "Back Home"], stay: "Sweet Home", transport: "Flight", details: [ { id: 1401, time: "01:00", action: "Flight TR866 Departs (SIN T1)", type: "transport", location: "" }, { id: 1402, time: "05:45", action: "Arrive safely in Taiwan (TPE T1)", type: "transport", location: "Taiwan Taoyuan International Airport" } ] }
             ];
 
-            const MAP_CODES = {
-                "Meriton Pitt St (SYD)": "Sydney CBD",
-                "Scenic World": "Katoomba, Blue Mtns",
-                "Sydney Fish Market": "Pyrmont, Sydney",
-                "Bondi Icebergs": "Bondi Beach",
-                "Meriton Broadbeach (GC)": "Broadbeach, QLD",
-                "Warner Bros. Movie World": "Oxenford, QLD",
-                "Sea World": "Main Beach, QLD",
-                "SkyPoint Observation Deck": "Surfers Paradise",
-                "Paradise Country": "Oxenford, QLD",
-                "Lone Pine Sanctuary": "Fig Tree Pocket, QLD",
-                "Mt Coot-tha Lookout": "Brisbane, QLD",
-                "Rydges GC Airport": "Bilinga, QLD"
+            // FIXED: Precise Google Maps search strings
+            const EXACT_LOCATIONS = {
+                "Meriton Pitt St (SYD)": "Meriton Suites Pitt Street, 329 Pitt St, Sydney NSW 2000, Australia",
+                "Scenic World": "Scenic World, Violet St, Katoomba NSW 2780, Australia",
+                "Sydney Fish Market": "Sydney Fish Market, Bank St, Pyrmont NSW 2009, Australia",
+                "Bondi Icebergs": "Bondi Icebergs Club, 1 Notts Ave, Bondi Beach NSW 2026, Australia",
+                "Meriton Broadbeach (GC)": "Meriton Suites Broadbeach, 2669 Gold Coast Hwy, Broadbeach QLD 4218, Australia",
+                "Warner Bros. Movie World": "Warner Bros. Movie World, Pacific Mwy, Oxenford QLD 4210, Australia",
+                "Sea World": "Sea World, Seaworld Dr, Main Beach QLD 4217, Australia",
+                "SkyPoint Observation Deck": "SkyPoint Observation Deck, 9 Hamilton Ave, Surfers Paradise QLD 4217, Australia",
+                "Paradise Country": "Paradise Country, Production Dr, Oxenford QLD 4210, Australia",
+                "Lone Pine Sanctuary": "Lone Pine Koala Sanctuary, 708 Jesmond Rd, Fig Tree Pocket QLD 4069, Australia",
+                "Mt Coot-tha Lookout": "Mount Coot-Tha Lookout, Sir Samuel Griffith Dr, Mount Coot-Tha QLD 4066, Australia",
+                "Rydges GC Airport": "Rydges Gold Coast Airport, Terminal Dr, Bilinga QLD 4225, Australia"
             };
 
             const DEFAULT_OUTFIT_TIPS = [
@@ -463,18 +625,16 @@
                 { id: 6, category: "Shopping & Misc", amount: 40000, note: "Ubers, Outlets, Souvenirs" },
             ];
 
-            // Debounce Function
             function debounce(func, timeout = 1000){
                 let timer;
                 return (...args) => {
                     if(!window.isEditor) return; 
                     clearTimeout(timer);
-                    updateStatus('saving');
+                    window.updateStatus('saving');
                     timer = setTimeout(() => { func.apply(this, args); }, timeout);
                 };
             }
 
-            // Read from Firestore
             const unsub = onSnapshot(doc(db, "trips", DOC_ID), (docSnap) => {
                 if (docSnap.exists()) {
                     const data = docSnap.data();
@@ -486,16 +646,15 @@
                     window.budgetItems = data.budgetItems || [];
                     
                     renderAll();
-                    updateStatus('saved');
+                    window.updateStatus('saved');
                 } else {
                     loadDefaultsLocal();
                 }
             }, (error) => {
                 console.error("Firestore Error:", error);
-                updateStatus('error');
+                window.updateStatus('error');
             });
 
-            // Write to Firestore
             const saveToCloud = debounce(async () => {
                 if(!window.isEditor) return;
                 try {
@@ -505,10 +664,10 @@
                         DRIVE_TIPS: window.DRIVE_TIPS, 
                         budgetItems: window.budgetItems
                     }, { merge: true });
-                    updateStatus('saved');
+                    window.updateStatus('saved');
                 } catch (e) {
                     console.error("Error adding document: ", e);
-                    updateStatus('error');
+                    window.updateStatus('error');
                 }
             });
 
@@ -521,32 +680,36 @@
                 document.getElementById('sync-text').innerText = "Loaded Defaults";
             }
 
-            function updateStatus(status) {
+            window.updateStatus = function(status) {
+                window.lastSyncStatus = status; // Keep track for language switching
                 const dot = document.getElementById('sync-dot');
                 const text = document.getElementById('sync-text');
+                const lang = localStorage.getItem('dashboard_lang') || 'zh-TW';
+                
                 if (status === 'saved') {
                     dot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-500';
-                    text.innerText = window.isEditor ? 'Synced to Cloud' : 'View Only Mode';
+                    text.innerText = window.isEditor ? translations[lang].syncSaved : translations[lang].roleViewer;
                 } else if (status === 'saving') {
                     dot.className = 'w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse';
-                    text.innerText = 'Saving...';
+                    text.innerText = translations[lang].syncSaving;
                 } else {
                     dot.className = 'w-2.5 h-2.5 rounded-full bg-rose-500';
-                    text.innerText = 'Offline/Error';
+                    text.innerText = translations[lang].syncOffline;
                 }
             }
 
-            function applyRoleUI() {
+            window.applyRoleUI = function() {
                 const badge = document.getElementById('role-badge');
+                const lang = localStorage.getItem('dashboard_lang') || 'zh-TW';
                 if (window.isEditor) {
-                    badge.innerHTML = `<i data-lucide="edit-3" width="12"></i> Editor`;
+                    badge.innerHTML = `<i data-lucide="edit-3" width="12"></i> ${translations[lang].roleEditor}`;
                     badge.className = "text-xs font-bold px-3 py-1 rounded-full border flex items-center gap-1 bg-accent-50 text-accent-700 border-accent-200";
                     document.getElementById('daily-edit-hint').style.display = 'block';
                     document.getElementById('budget-add-container').classList.remove('hidden');
                     document.getElementById('btn-add-outfit').classList.remove('hidden');
                     document.getElementById('btn-add-drive').classList.remove('hidden');
                 } else {
-                    badge.innerHTML = `<i data-lucide="eye" width="12"></i> Viewer`;
+                    badge.innerHTML = `<i data-lucide="eye" width="12"></i> ${translations[lang].roleViewer}`;
                     badge.className = "text-xs font-bold px-3 py-1 rounded-full border flex items-center gap-1 bg-slate-100 text-slate-600 border-slate-200";
                     document.getElementById('daily-edit-hint').style.display = 'none';
                     document.getElementById('budget-add-container').classList.add('hidden');
@@ -641,7 +804,7 @@
                 renderMapCodes();
                 renderBudget();
                 renderAdvisories();
-                applyRoleUI();
+                window.applyRoleUI();
                 lucide.createIcons();
             }
 
@@ -691,7 +854,7 @@
                                                 <div ${editAttr} onblur="updateDailyDetail(${day.day}, ${detail.id}, 'action', this.innerText)" class="font-bold text-slate-800 text-[15px]">${detail.action}</div>
                                                 <div class="flex items-center gap-2 mt-2">
                                                     <button onclick="event.stopPropagation(); openGoogleMaps('${detail.location || ''}')" class="text-xs text-theme-600 hover:text-white flex items-center gap-1 font-bold bg-theme-50 hover:bg-theme-500 px-2 py-1 rounded-lg border border-theme-100 transition-colors shadow-sm">
-                                                        <i data-lucide="map-pin" width="12"></i> ${detail.location ? 'Map' : 'No Loc'}
+                                                        <i data-lucide="map-pin" width="12"></i> ${detail.location ? 'Nav' : '-'}
                                                     </button>
                                                     <div ${editAttr} onblur="updateDailyDetail(${day.day}, ${detail.id}, 'location', this.innerText)" class="text-xs font-medium text-slate-400 hover:text-slate-600 min-w-[50px] truncate max-w-[200px]" title="${detail.location || ''}">${detail.location || (window.isEditor ? 'Add Location...' : '')}</div>
                                                 </div>
@@ -710,13 +873,13 @@
             function renderMapCodes() {
                 const container = document.getElementById('mapcode-grid');
                 if(!container) return;
-                container.innerHTML = Object.entries(MAP_CODES).map(([name, code]) => `
+                container.innerHTML = Object.entries(EXACT_LOCATIONS).map(([name, code]) => `
                     <div class="flex flex-col justify-between bg-white/80 p-4 rounded-2xl border border-slate-100 shadow-sm gap-3 hover:shadow-md transition-shadow">
                         <button onclick="openGoogleMaps('${code}')" class="font-bold text-slate-700 hover:text-theme-600 flex items-start gap-2 text-left">
                             <i data-lucide="map-pin" width="18" class="shrink-0 mt-0.5 text-theme-500"></i> <span class="leading-tight">${name}</span>
                         </button>
                         <div class="flex justify-end">
-                            <code class="bg-slate-100 px-3 py-1.5 rounded-lg text-slate-600 font-mono font-bold select-all cursor-pointer hover:bg-slate-200 text-xs shadow-inner">${code}</code>
+                            <button onclick="openGoogleMaps('${code}')" class="bg-slate-100 px-3 py-1.5 rounded-lg text-slate-600 font-mono font-bold cursor-pointer hover:bg-slate-200 text-xs shadow-inner flex items-center gap-1"><i data-lucide="external-link" width="12"></i> Navigate</button>
                         </div>
                     </div>
                 `).join('');
@@ -764,8 +927,7 @@
                 const ctx = document.getElementById('tempChart');
                 if(!ctx) return;
                 
-                // Set defaults globally to Nunito font for Chart.js
-                Chart.defaults.font.family = "Nunito, sans-serif";
+                Chart.defaults.font.family = "Nunito, 'Noto Sans TC', sans-serif";
                 Chart.defaults.color = '#64748b';
 
                 new Chart(ctx.getContext('2d'), { 
@@ -788,11 +950,6 @@
                 });
             }
 
-            document.addEventListener('DOMContentLoaded', () => {
-                renderMapCodes();
-                lucide.createIcons();
-                initChart();
-            });
         }
     </script>
 </body>
