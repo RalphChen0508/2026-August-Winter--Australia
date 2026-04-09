@@ -10,9 +10,6 @@
     
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;900&family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
@@ -389,17 +386,50 @@
                 </div>
             </div>
 
-            <!-- 4. Advisories Tab -->
-            <div id="tab-advisories" class="tab-content space-y-6">
+            <!-- 4. Advisories Tab (Updated with Dynamic Weather & Local Info) -->
+            <div id="tab-advisories" class="tab-content">
                 
-                <div class="glass-card rounded-3xl p-6 md:p-8 border border-white">
-                    <h3 class="text-xl font-black text-slate-800 mb-6 flex items-center gap-2">
-                        <i data-lucide="thermometer" class="text-accent-500"></i> <span data-i18n="weatherTitle">August Temp: SYD vs GC</span>
-                    </h3>
-                    <div class="relative h-[280px] w-full"><canvas id="tempChart"></canvas></div>
-                    <p class="text-center text-sm text-slate-500 mt-4 font-bold" data-i18n="weatherNote">August is late winter in Australia. Mornings/evenings are chilly, especially in Sydney.</p>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                    <!-- Dynamic 7-Day Weather Forecast -->
+                    <div class="glass-card rounded-3xl p-6 md:p-8 border border-white flex flex-col">
+                        <h3 class="text-xl font-black text-slate-800 mb-6 flex items-center gap-2">
+                            <i data-lucide="cloud-sun" class="text-theme-500"></i> <span data-i18n="forecastTitle">7-Day Live Forecast</span>
+                        </h3>
+                        
+                        <!-- Sydney Forecast Container -->
+                        <div id="forecast-syd" class="mb-6">
+                            <div class="text-sm text-slate-500 animate-pulse">Loading Sydney weather...</div>
+                        </div>
+                        
+                        <!-- Gold Coast Forecast Container -->
+                        <div id="forecast-gc">
+                            <div class="text-sm text-slate-500 animate-pulse">Loading Gold Coast weather...</div>
+                        </div>
+                    </div>
+
+                    <!-- Local Info & Useful Links -->
+                    <div class="glass-card rounded-3xl p-6 md:p-8 border border-white flex flex-col">
+                        <h3 class="text-xl font-black text-slate-800 mb-6 flex items-center gap-2">
+                            <i data-lucide="info" class="text-accent-500"></i> <span data-i18n="localInfoTitle">Local Info & Apps</span>
+                        </h3>
+                        <ul class="space-y-4 text-sm font-medium text-slate-700">
+                            <li class="flex gap-4 items-start bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+                                <div class="p-2 bg-blue-50 text-blue-600 rounded-xl shrink-0"><i data-lucide="smartphone" width="20"></i></div>
+                                <div data-i18n="info1"><strong>TripView App:</strong> Essential for Sydney. Real-time trackwork and platform info.</div>
+                            </li>
+                            <li class="flex gap-4 items-start bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+                                <div class="p-2 bg-emerald-50 text-emerald-600 rounded-xl shrink-0"><i data-lucide="bus" width="20"></i></div>
+                                <div data-i18n="info2"><strong>MyTranslink:</strong> Must-have for QLD (Gold Coast/Brisbane) public transport.</div>
+                            </li>
+                            <li class="flex gap-4 items-start bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+                                <div class="p-2 bg-sky-50 text-sky-600 rounded-xl shrink-0"><i data-lucide="waves" width="20"></i></div>
+                                <div data-i18n="info3"><strong>Whale Watching:</strong> August is peak season! Keep an eye out from coastal viewpoints.</div>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
                 
+                <!-- Checklists grids -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="glass-card rounded-3xl p-6 border border-white shadow-sm hover:shadow-md transition-shadow">
                         <div class="flex justify-between items-center mb-6">
@@ -441,7 +471,10 @@
                 days: " Days", cities: "3 Major Cities", roadTrip: "Gold Coast Road Trip", estTotal: "Est. Total (TWD)",
                 navHub: "Key Locations & Navigation", dailyItinerary: "Daily Itinerary", editHint: "Click text to edit. Changes sync automatically.", expandAll: "Expand / Collapse",
                 budgetEst: "Budget Estimation (TWD)", category: "Category", amount: "Amount (TWD)", notes: "Notes", totalEst: "Total Estimate", addItem: "Add Item",
-                weatherTitle: "August Temp: SYD vs GC", weatherNote: "August is late winter in Australia. Mornings/evenings are chilly, especially in Sydney.",
+                forecastTitle: "7-Day Live Weather Forecast", localInfoTitle: "Essential Apps & Local Info",
+                info1: "<strong>TripView App:</strong> Essential for Sydney trains/ferries. Check platform info and live delays.",
+                info2: "<strong>MyTranslink:</strong> Must-have for QLD (Gold Coast/Brisbane) public transport and timetables.",
+                info3: "<strong>Whale Watching:</strong> August is peak season! Book a boat tour or keep an eye out from coastal viewpoints.",
                 checklist: "Pre-Trip Checklist", logistics: "Logistics & Driving",
                 roleEditor: "Editor", roleViewer: "Viewer", syncSaved: "Synced", syncSaving: "Saving...", syncOffline: "Offline"
             },
@@ -452,7 +485,10 @@
                 days: " 天", cities: "3 個主要城市", roadTrip: "黃金海岸公路旅行", estTotal: "預估總旅費 (TWD)",
                 navHub: "重點導航庫 (Google Maps)", dailyItinerary: "詳細日程表", editHint: "點擊文字編輯，自動同步至雲端。", expandAll: "展開 / 收合",
                 budgetEst: "旅費預算估算表 (TWD)", category: "項目分類", amount: "預估金額 (TWD)", notes: "備註說明", totalEst: "總計預估", addItem: "新增項目",
-                weatherTitle: "8月氣溫對比：雪梨 vs 黃金海岸", weatherNote: "澳洲 8 月為冬末初春，早晚溫差大，雪梨請備妥保暖衣物。",
+                forecastTitle: "7 天當地即時天氣預報", localInfoTitle: "當地實用資訊與必備 App",
+                info1: "<strong>TripView App：</strong>雪梨火車與渡輪必備！精準查看即時延誤與月台資訊。",
+                info2: "<strong>MyTranslink：</strong>昆士蘭州 (黃金海岸/布里斯本) 交通與公車時刻表必備。",
+                info3: "<strong>賞鯨旺季：</strong>8 月為東海岸賞鯨旺季，建議預先報名出海行程或在海岸線目擊！",
                 checklist: "行前與穿搭檢核", logistics: "自駕與物流提示",
                 roleEditor: "編輯模式", roleViewer: "唯讀模式", syncSaved: "雲端已同步", syncSaving: "儲存中...", syncOffline: "離線/失敗"
             },
@@ -463,7 +499,10 @@
                 days: " 日間", cities: "3 主要都市", roadTrip: "ゴールドコースト ドライブ", estTotal: "予想合計 (TWD)",
                 navHub: "主要な目的地とナビ", dailyItinerary: "詳細スケジュール", editHint: "クリックして編集。自動同期されます。", expandAll: "展開 / 縮小",
                 budgetEst: "予算見積もり (TWD)", category: "カテゴリー", amount: "金額 (TWD)", notes: "備考", totalEst: "合計見積もり", addItem: "追加",
-                weatherTitle: "8月の気温: シドニー vs ゴールドコースト", weatherNote: "オーストラリアの8月は晩冬です。特にシドニーの朝晩は冷え込みます。",
+                forecastTitle: "7日間 リアルタイム天気予報", localInfoTitle: "現地の便利情報と必須アプリ",
+                info1: "<strong>TripView App：</strong>シドニーの電車やフェリーに必須。遅延やプラットフォーム情報が正確です。",
+                info2: "<strong>MyTranslink：</strong>クイーンズランド州（ゴールドコースト/ブリスベン）の交通機関に必須。",
+                info3: "<strong>ホエールウォッチング：</strong>8月は東海岸のピークシーズンです！クルーズの予約をお勧めします。",
                 checklist: "出発前チェックリスト", logistics: "ドライブと移動のヒント",
                 roleEditor: "編集者", roleViewer: "閲覧者", syncSaved: "同期完了", syncSaving: "保存中...", syncOffline: "オフライン"
             }
@@ -496,13 +535,13 @@
                 }
             } catch(e) { console.log('Exchange rate fetch failed'); }
 
-            // 2. Weather Forecast (Sydney & Gold Coast) via Open-Meteo
-            const fetchWeather = async (lat, lon, idPrefix) => {
+            // 2. Weather Forecast (Sydney & Gold Coast) via Open-Meteo (7 Days)
+            const fetchWeather = async (lat, lon, idPrefix, cityName) => {
                 try {
-                    const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&daily=temperature_2m_max,temperature_2m_min,weathercode&timezone=auto&forecast_days=3`);
+                    const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&daily=temperature_2m_max,temperature_2m_min,weathercode,precipitation_probability_max&timezone=auto&forecast_days=7`);
                     const data = await res.json();
                     
-                    // Weather Code to Emoji (Simple map)
+                    // Weather Code to Emoji
                     const getWeatherEmoji = (code) => {
                         if (code <= 1) return '☀️';
                         if (code <= 3) return '🌤️';
@@ -512,28 +551,54 @@
                         return '⛈️';
                     };
 
-                    // Current
+                    // A) Update Top Widget (Current & 3-day tooltip)
                     const currTemp = Math.round(data.current_weather.temperature);
                     const currIcon = getWeatherEmoji(data.current_weather.weathercode);
                     document.getElementById(`weather-${idPrefix}`).innerHTML = `${currIcon} ${currTemp}°C`;
 
-                    // 3-Day Forecast Tooltip
-                    let tooltipHTML = `<div class="font-bold border-b pb-1 mb-1">3-Day Forecast</div>`;
+                    let tooltipHTML = `<div class="font-bold border-b pb-1 mb-1 text-slate-700">3-Day Forecast</div>`;
                     for(let i=0; i<3; i++) {
                         const date = new Date(data.daily.time[i]).toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric'});
                         const max = Math.round(data.daily.temperature_2m_max[i]);
                         const min = Math.round(data.daily.temperature_2m_min[i]);
                         const icon = getWeatherEmoji(data.daily.weathercode[i]);
-                        tooltipHTML += `<div class="flex justify-between items-center"><span>${date} ${icon}</span> <span>${min}° ~ ${max}°</span></div>`;
+                        tooltipHTML += `<div class="flex justify-between items-center text-slate-600"><span>${date} ${icon}</span> <span>${min}° ~ ${max}°</span></div>`;
                     }
                     document.getElementById(`weather-${idPrefix}-tooltip`).innerHTML = tooltipHTML;
+
+                    // B) Update 7-Day Forecast inside Advisories Tab
+                    let forecastHTML = `<div class="font-black text-slate-700 mb-3 ml-1 flex items-center gap-1"><i data-lucide="map-pin" width="16" class="text-blue-400"></i> ${cityName}</div>
+                                        <div class="flex gap-3 overflow-x-auto pb-2 no-scrollbar">`;
+                    for(let i=0; i<7; i++) {
+                        const dateObj = new Date(data.daily.time[i]);
+                        const dateStr = dateObj.toLocaleDateString('en-US', {weekday:'short', day:'numeric'});
+                        const isToday = i === 0;
+                        const max = Math.round(data.daily.temperature_2m_max[i]);
+                        const min = Math.round(data.daily.temperature_2m_min[i]);
+                        const pop = data.daily.precipitation_probability_max[i] || 0;
+                        const icon = getWeatherEmoji(data.daily.weathercode[i]);
+                        
+                        forecastHTML += `
+                            <div class="flex-shrink-0 bg-${isToday ? 'blue-50 border-blue-200' : 'white border-slate-100'} border rounded-2xl p-4 text-center min-w-[90px] shadow-sm">
+                                <div class="text-xs ${isToday ? 'text-blue-600' : 'text-slate-500'} font-black uppercase tracking-wider">${isToday ? 'Today' : dateStr}</div>
+                                <div class="text-3xl my-2">${icon}</div>
+                                <div class="text-lg font-black text-slate-700">${max}°</div>
+                                <div class="text-sm font-bold text-slate-400">${min}°</div>
+                                <div class="text-[11px] text-blue-500 mt-2 font-bold bg-blue-100/50 rounded-full py-0.5">💧 ${pop}%</div>
+                            </div>
+                        `;
+                    }
+                    forecastHTML += `</div>`;
+                    const forecastContainer = document.getElementById(`forecast-${idPrefix}`);
+                    if(forecastContainer) forecastContainer.innerHTML = forecastHTML;
+                    lucide.createIcons();
 
                 } catch(e) { console.log('Weather fetch failed'); }
             };
 
             // Coordinates: Sydney(-33.8688, 151.2093), Gold Coast(-28.0167, 153.4000)
-            fetchWeather(-33.8688, 151.2093, 'syd');
-            fetchWeather(-28.0167, 153.4000, 'gc');
+            fetchWeather(-33.8688, 151.2093, 'syd', 'Sydney (SYD)');
+            fetchWeather(-28.0167, 153.4000, 'gc', 'Gold Coast (OOL)');
         }
 
         // ==========================================
@@ -548,7 +613,7 @@
             const savedLang = localStorage.getItem('dashboard_lang') || 'zh-TW';
             document.getElementById('lang-selector').value = savedLang;
             window.changeLanguage(savedLang);
-            initWidgets(); // Start fetching live data
+            initWidgets(); 
 
             const firebaseConfig = {
                 apiKey: "AIzaSyBQagGqyfWGkwwibgsnyZ69eNRjOHIenM0",
@@ -572,21 +637,20 @@
             const DEFAULT_ITINERARY_DATA = [
                 { day: 1, date: "2026/08/14 (Fri)", city: "Singapore", title: "Transit & Jewel Changi", icon: "plane", weather: "Tropical 28°C", highlights: ["Fly Scoot TR867", "Jewel Rain Vortex", "Song Fa Bak Kut Teh"], stay: "Overnight Flight", transport: "Flight (TPE ➔ SIN)", details: [ { id: 101, time: "16:15", action: "Flight TR867 Departs (TPE T1)", type: "transport", location: "Taiwan Taoyuan International Airport" }, { id: 102, time: "20:45", action: "Arrive at Changi Airport (SIN)", type: "transport", location: "Singapore Changi Airport" }, { id: 103, time: "21:00", action: "Jewel Changi: Watch Rain Vortex Light Show", type: "activity", location: "Jewel Changi Airport" }, { id: 104, time: "21:30", action: "Dinner: Song Fa Bak Kut Teh (Pepper Soup)", type: "food", location: "Song Fa Bak Kut Teh Jewel Changi Airport" } ] },
                 { day: 2, date: "2026/08/15 (Sat)", city: "Sydney", title: "Arrival & City Walk", icon: "building", weather: "Cool 15°C", highlights: ["Arrive SYD", "Hyde Park", "QVB & Chinatown"], stay: "Meriton Suites Pitt Street", transport: "Flight (SIN ➔ SYD), UberXL", details: [ { id: 201, time: "02:10", action: "Flight TR10 Departs (SIN T1)", type: "transport", location: "" }, { id: 202, time: "11:45", action: "Arrive at Sydney (SYD T1)", type: "transport", location: "Sydney Airport" }, { id: 203, time: "13:00", action: "UberXL to Hotel (~30 mins)", type: "transport", location: "" }, { id: 204, time: "13:40", action: "Check-in: Meriton Suites Pitt Street", type: "stay", location: "Meriton Suites Pitt Street, 329 Pitt St, Sydney NSW 2000, Australia" }, { id: 205, time: "15:00", action: "City Walk: Hyde Park & St Mary's Cathedral", type: "activity", location: "St Mary's Cathedral, Sydney" }, { id: 206, time: "16:30", action: "Afternoon Tea: The Grounds of the City", type: "food", location: "The Grounds of the City, George St, Sydney" }, { id: 207, time: "17:30", action: "Shopping: QVB & Chinatown walk", type: "shopping", location: "Queen Victoria Building" } ] },
-                { day: 3, date: "2026/08/16 (Sun)", city: "Sydney", title: "Harbour Visual Feast", icon: "ship", weather: "Sunny 16°C", highlights: ["Fish Market", "Opera House", "Manly Ferry"], stay: "Meriton Suites Pitt Street", transport: "Light Rail / Ferry (Opal Pay)", details: [ { id: 301, time: "08:30", action: "Brunch: Sydney Fish Market (Arrive early)", type: "food", location: "Sydney Fish Market, Pyrmont" }, { id: 302, time: "11:00", action: "Walk: Darling Harbour to The Rocks", type: "activity", location: "Darling Harbour" }, { id: 303, time: "13:30", action: "Explore: Sydney Opera House (Close up)", type: "activity", location: "Sydney Opera House" }, { id: 304, time: "15:30", action: "Ferry: Circular Quay to Manly Beach", type: "transport", location: "Circular Quay Wharf" }, { id: 305, time: "17:30", action: "Ferry Return: View Luna Park neon lights", type: "activity", location: "Luna Park Sydney" }, { id: 306, time: "19:00", action: "Dinner: Cafe Sydney (Harbour view) or Mamak", type: "food", location: "Cafe Sydney" } ] },
+                { day: 3, date: "2026/08/16 (Sun)", city: "Sydney", title: "Harbour Visual Feast", icon: "ship", weather: "Sunny 16°C", highlights: ["Fish Market", "Opera House", "Manly Ferry"], stay: "Meriton Suites Pitt Street", transport: "Light Rail / Ferry (Opal Pay)", details: [ { id: 301, time: "08:30", action: "Brunch: Sydney Fish Market (Arrive early)", type: "food", location: "Sydney Fish Market, Bank St, Pyrmont" }, { id: 302, time: "11:00", action: "Walk: Darling Harbour to The Rocks", type: "activity", location: "Darling Harbour" }, { id: 303, time: "13:30", action: "Explore: Sydney Opera House (Close up)", type: "activity", location: "Sydney Opera House" }, { id: 304, time: "15:30", action: "Ferry: Circular Quay to Manly Beach", type: "transport", location: "Circular Quay Wharf" }, { id: 305, time: "17:30", action: "Ferry Return: View Luna Park neon lights", type: "activity", location: "Luna Park Sydney" }, { id: 306, time: "19:00", action: "Dinner: Cafe Sydney (Harbour view) or Mamak", type: "food", location: "Cafe Sydney" } ] },
                 { day: 4, date: "2026/08/17 (Mon)", city: "Blue Mtns", title: "Vertical Forest Exploration", icon: "mountain", weather: "Cold 10°C", highlights: ["Scenic World", "Three Sisters", "The Yellow Deli"], stay: "Meriton Suites Pitt Street", transport: "Train (T1/BMT Line)", details: [ { id: 401, time: "08:00", action: "Train: Sydney Central to Katoomba (~2hr)", type: "transport", location: "Central Station, Sydney" }, { id: 402, time: "10:30", action: "Scenic World: Red Railway & Rainforest Walk", type: "activity", location: "Scenic World, Violet St, Katoomba NSW" }, { id: 403, time: "12:30", action: "Scenic World: Blue Cableway & Yellow Skyway", type: "activity", location: "" }, { id: 404, time: "13:30", action: "Viewpoint: Three Sisters Rock", type: "activity", location: "Echo Point Lookout (Three Sisters)" }, { id: 405, time: "14:30", action: "Late Lunch: The Yellow Deli (Wooden interior)", type: "food", location: "The Yellow Deli Katoomba" }, { id: 406, time: "16:30", action: "Train: Return to Sydney City", type: "transport", location: "" } ] },
                 { day: 5, date: "2026/08/18 (Tue)", city: "Sydney", title: "Academy & Coastal Views", icon: "camera", weather: "Sunny 17°C", highlights: ["Sydney Uni", "Bondi Beach", "SkyFeast"], stay: "Meriton Suites Pitt Street", transport: "Bus / Walk", details: [ { id: 501, time: "09:00", action: "Explore: University of Sydney (Hogwarts vibes)", type: "activity", location: "The University of Sydney" }, { id: 502, time: "12:30", action: "Bus: Head to Bondi Beach", type: "transport", location: "Bondi Beach" }, { id: 503, time: "13:30", action: "Lunch: Hurricane's Grill (Pork Ribs) or Betty's Burgers", type: "food", location: "Hurricane's Grill Bondi Beach" }, { id: 504, time: "15:00", action: "Photo Spot: Bondi Icebergs Pool", type: "activity", location: "Bondi Icebergs Club" }, { id: 505, time: "17:30", action: "Shopping: Westfield Sydney", type: "shopping", location: "Westfield Sydney" }, { id: 506, time: "19:00", action: "Dinner: SkyFeast at Sydney Tower ($A125 Buffet)", type: "food", location: "SkyFeast at Sydney Tower" } ] },
                 { day: 6, date: "2026/08/19 (Wed)", city: "Gold Coast", title: "City Transfer & Logistics", icon: "plane", weather: "Mild 20°C", highlights: ["Fly to OOL", "Rent MG ZS", "Pacific Fair"], stay: "Meriton Suites Broadbeach", transport: "Flight (VA519), Car Rental", details: [ { id: 601, time: "10:00", action: "Uber to SYD Airport", type: "transport", location: "Sydney Airport" }, { id: 602, time: "12:20", action: "Flight VA519 Departs (SYD)", type: "transport", location: "" }, { id: 603, time: "13:40", action: "Arrive at Gold Coast (OOL)", type: "transport", location: "Gold Coast Airport" }, { id: 604, time: "14:30", action: "Rent Car: Alpha Car Hire (MG ZS SUV)", type: "transport", location: "Alpha Car Hire Gold Coast" }, { id: 605, time: "15:30", action: "Check-in: Meriton Suites Broadbeach", type: "stay", location: "Meriton Suites Broadbeach, 2669 Gold Coast Hwy" }, { id: 606, time: "16:30", action: "Shopping: Pacific Fair (Supplies & Dinner)", type: "shopping", location: "Pacific Fair Shopping Centre" } ] },
-                { day: 7, date: "2026/08/20 (Thu)", city: "Gold Coast", title: "Action & Heroes at Movie World", icon: "ticket", weather: "Sunny 21°C", highlights: ["Movie World", "Stunt Show", "Harbour Town"], stay: "Meriton Suites Broadbeach", transport: "Drive (25 mins)", details: [ { id: 701, time: "09:30", action: "Drive to Warner Bros. Movie World", type: "transport", location: "Warner Bros. Movie World" }, { id: 702, time: "10:00", action: "Movie World: Rides & Superhero Meet", type: "activity", location: "" }, { id: 703, time: "13:30", action: "Show: Hollywood Stunt Driver", type: "activity", location: "" }, { id: 704, time: "16:00", action: "Shopping: Harbour Town Premium Outlets", type: "shopping", location: "Harbour Town Premium Outlets" }, { id: 705, time: "18:30", action: "Dinner: Gotham Grill (Theme Restaurant)", type: "food", location: "Gotham Grill, Movie World" } ] },
-                { day: 8, date: "2026/08/21 (Fri)", city: "Gold Coast", title: "Marine Life & Whale Watching", icon: "waves", weather: "Sunny 22°C", highlights: ["Sea World", "Whale Watch Cruise", "Hatsuhana Sushi"], stay: "Meriton Suites Broadbeach", transport: "Drive (15 mins)", details: [ { id: 801, time: "09:30", action: "Drive to Sea World Gold Coast", type: "transport", location: "Sea World Gold Coast" }, { id: 802, time: "10:00", action: "Sea World: Dolphins, Penguins, Polar Bears", type: "activity", location: "" }, { id: 803, time: "12:30", action: "Lunch: Hatsuhana Japanese (Inside Park)", type: "food", location: "Hatsuhana Japanese Restaurant" }, { id: 804, time: "14:00", action: "Activity: Whale Watching Cruise (Departs from Park)", type: "activity", location: "" }, { id: 805, time: "18:00", action: "Dinner: Broadbeach Local Area", type: "food", location: "Broadbeach QLD" } ] },
-                { day: 9, date: "2026/08/22 (Sat)", city: "Gold Coast", title: "Surfers Paradise & High Views", icon: "sun", weather: "Sunny 21°C", highlights: ["Surfers Paradise Sign", "SkyPoint", "Beach Markets"], stay: "Meriton Suites Broadbeach", transport: "Drive / Walk", details: [ { id: 901, time: "10:00", action: "Photo Spot: Surfers Paradise Beach Sign", type: "activity", location: "Surfers Paradise Beach" }, { id: 902, time: "11:30", action: "Observation Deck: SkyPoint 77F", type: "activity", location: "SkyPoint Observation Deck" }, { id: 903, time: "13:30", action: "Lunch: Vapiano (Fresh Pasta)", type: "food", location: "Vapiano Surfers Paradise" }, { id: 904, time: "16:00", action: "Explore: Beachfront Markets (Weekend Crafts)", type: "shopping", location: "Surfers Paradise Beachfront Markets" }, { id: 905, time: "17:30", action: "Sunset Drink: SkyPoint Bar", type: "activity", location: "" } ] },
-                { day: 10, date: "2026/08/23 (Sun)", city: "Gold Coast", title: "Aussie Farm Experience", icon: "tree-pine", weather: "Sunny 20°C", highlights: ["Paradise Country", "Koala Photos", "HOTA"], stay: "Meriton Suites Broadbeach", transport: "Drive (25 mins)", details: [ { id: 1001, time: "09:30", action: "Drive to Paradise Country", type: "transport", location: "Paradise Country, Oxenford" }, { id: 1002, time: "10:30", action: "Farm Experience: Koala holding & Sheep shearing", type: "activity", location: "" }, { id: 1003, time: "14:00", action: "Art & Culture: HOTA (Home of the Arts)", type: "activity", location: "HOTA, Home of the Arts" }, { id: 1004, time: "18:00", action: "Dinner: The Collective Palm Beach", type: "food", location: "The Collective Palm Beach" } ] },
-                { day: 11, date: "2026/08/24 (Mon)", city: "Brisbane", title: "Brisbane City Day Trip", icon: "building", weather: "Mild 23°C", highlights: ["Queen St Mall", "Lone Pine Koalas", "Mt Coot-tha"], stay: "Meriton Suites Broadbeach", transport: "Drive via M1 (75 mins)", details: [ { id: 1101, time: "08:30", action: "Drive to Brisbane via M1 Highway", type: "transport", location: "" }, { id: 1102, time: "10:00", action: "Shopping: Queen Street Mall", type: "shopping", location: "Queen Street Mall, Brisbane" }, { id: 1103, time: "12:30", action: "Lunch: Grill'd (Healthy Burgers)", type: "food", location: "Grill'd South Bank" }, { id: 1104, time: "14:00", action: "Animals: Lone Pine Koala Sanctuary", type: "activity", location: "Lone Pine Koala Sanctuary, Fig Tree Pocket" }, { id: 1105, time: "17:00", action: "Night View: Mount Coot-tha Lookout", type: "activity", location: "Mount Coot-tha Lookout" }, { id: 1106, time: "18:30", action: "Dinner: Eat Street Northshore (Check if open Mon)", type: "food", location: "Eat Street Northshore" } ] },
-                { day: 12, date: "2026/08/25 (Tue)", city: "Gold Coast", title: "Wrap-up & Airport Hotel", icon: "car", weather: "Sunny 21°C", highlights: ["Return Car", "Coolangatta", "Rydges Hotel"], stay: "Rydges GC Airport Hotel", transport: "Drive, Uber", details: [ { id: 1201, time: "09:30", action: "Morning: Free time for Beach/Shopping", type: "activity", location: "" }, { id: 1202, time: "14:00", action: "Car Return: Alpha Car Hire", type: "transport", location: "Alpha Car Hire Gold Coast" }, { id: 1203, time: "15:00", action: "Check-in: Rydges GC Airport Hotel", type: "stay", location: "Rydges Gold Coast Airport" }, { id: 1204, time: "16:00", action: "Walk: Coolangatta & Kirra Beach", type: "activity", location: "Kirra Beach, QLD" }, { id: 1205, time: "17:00", action: "Final Shopping: Woolworths (TimTams)", type: "shopping", location: "Woolworths Coolangatta" }, { id: 1206, time: "18:30", action: "Dinner: The Salty Fox (Rooftop runway view)", type: "food", location: "The Salty Fox Rooftop Bar" } ] },
+                { day: 7, date: "2026/08/20 (Thu)", city: "Gold Coast", title: "Action & Heroes at Movie World", icon: "ticket", weather: "Sunny 21°C", highlights: ["Movie World", "Stunt Show", "Harbour Town"], stay: "Meriton Suites Broadbeach", transport: "Drive (25 mins)", details: [ { id: 701, time: "09:30", action: "Drive to Warner Bros. Movie World", type: "transport", location: "Warner Bros. Movie World, Pacific Mwy, Oxenford" }, { id: 702, time: "10:00", action: "Movie World: Rides & Superhero Meet", type: "activity", location: "" }, { id: 703, time: "13:30", action: "Show: Hollywood Stunt Driver", type: "activity", location: "" }, { id: 704, time: "16:00", action: "Shopping: Harbour Town Premium Outlets", type: "shopping", location: "Harbour Town Premium Outlets" }, { id: 705, time: "18:30", action: "Dinner: Gotham Grill (Theme Restaurant)", type: "food", location: "Gotham Grill, Movie World" } ] },
+                { day: 8, date: "2026/08/21 (Fri)", city: "Gold Coast", title: "Marine Life & Whale Watching", icon: "waves", weather: "Sunny 22°C", highlights: ["Sea World", "Whale Watch Cruise", "Hatsuhana Sushi"], stay: "Meriton Suites Broadbeach", transport: "Drive (15 mins)", details: [ { id: 801, time: "09:30", action: "Drive to Sea World Gold Coast", type: "transport", location: "Sea World Gold Coast, Main Beach" }, { id: 802, time: "10:00", action: "Sea World: Dolphins, Penguins, Polar Bears", type: "activity", location: "" }, { id: 803, time: "12:30", action: "Lunch: Hatsuhana Japanese (Inside Park)", type: "food", location: "Hatsuhana Japanese Restaurant" }, { id: 804, time: "14:00", action: "Activity: Whale Watching Cruise (Departs from Park)", type: "activity", location: "" }, { id: 805, time: "18:00", action: "Dinner: Broadbeach Local Area", type: "food", location: "Broadbeach QLD" } ] },
+                { day: 9, date: "2026/08/22 (Sat)", city: "Gold Coast", title: "Surfers Paradise & High Views", icon: "sun", weather: "Sunny 21°C", highlights: ["Surfers Paradise Sign", "SkyPoint", "Beach Markets"], stay: "Meriton Suites Broadbeach", transport: "Drive / Walk", details: [ { id: 901, time: "10:00", action: "Photo Spot: Surfers Paradise Beach Sign", type: "activity", location: "Surfers Paradise Beach" }, { id: 902, time: "11:30", action: "Observation Deck: SkyPoint 77F", type: "activity", location: "SkyPoint Observation Deck, 9 Hamilton Ave" }, { id: 903, time: "13:30", action: "Lunch: Vapiano (Fresh Pasta)", type: "food", location: "Vapiano Surfers Paradise" }, { id: 904, time: "16:00", action: "Explore: Beachfront Markets (Weekend Crafts)", type: "shopping", location: "Surfers Paradise Beachfront Markets" }, { id: 905, time: "17:30", action: "Sunset Drink: SkyPoint Bar", type: "activity", location: "" } ] },
+                { day: 10, date: "2026/08/23 (Sun)", city: "Gold Coast", title: "Aussie Farm Experience", icon: "tree-pine", weather: "Sunny 20°C", highlights: ["Paradise Country", "Koala Photos", "HOTA"], stay: "Meriton Suites Broadbeach", transport: "Drive (25 mins)", details: [ { id: 1001, time: "09:30", action: "Drive to Paradise Country", type: "transport", location: "Paradise Country, Production Dr, Oxenford" }, { id: 1002, time: "10:30", action: "Farm Experience: Koala holding & Sheep shearing", type: "activity", location: "" }, { id: 1003, time: "14:00", action: "Art & Culture: HOTA (Home of the Arts)", type: "activity", location: "HOTA, Home of the Arts" }, { id: 1004, time: "18:00", action: "Dinner: The Collective Palm Beach", type: "food", location: "The Collective Palm Beach" } ] },
+                { day: 11, date: "2026/08/24 (Mon)", city: "Brisbane", title: "Brisbane City Day Trip", icon: "building", weather: "Mild 23°C", highlights: ["Queen St Mall", "Lone Pine Koalas", "Mt Coot-tha"], stay: "Meriton Suites Broadbeach", transport: "Drive via M1 (75 mins)", details: [ { id: 1101, time: "08:30", action: "Drive to Brisbane via M1 Highway", type: "transport", location: "" }, { id: 1102, time: "10:00", action: "Shopping: Queen Street Mall", type: "shopping", location: "Queen Street Mall, Brisbane" }, { id: 1103, time: "12:30", action: "Lunch: Grill'd (Healthy Burgers)", type: "food", location: "Grill'd South Bank" }, { id: 1104, time: "14:00", action: "Animals: Lone Pine Koala Sanctuary", type: "activity", location: "Lone Pine Koala Sanctuary, 708 Jesmond Rd" }, { id: 1105, time: "17:00", action: "Night View: Mount Coot-tha Lookout", type: "activity", location: "Mount Coot-Tha Lookout, Sir Samuel Griffith Dr" }, { id: 1106, time: "18:30", action: "Dinner: Eat Street Northshore (Check if open Mon)", type: "food", location: "Eat Street Northshore" } ] },
+                { day: 12, date: "2026/08/25 (Tue)", city: "Gold Coast", title: "Wrap-up & Airport Hotel", icon: "car", weather: "Sunny 21°C", highlights: ["Return Car", "Coolangatta", "Rydges Hotel"], stay: "Rydges GC Airport Hotel", transport: "Drive, Uber", details: [ { id: 1201, time: "09:30", action: "Morning: Free time for Beach/Shopping", type: "activity", location: "" }, { id: 1202, time: "14:00", action: "Car Return: Alpha Car Hire", type: "transport", location: "Alpha Car Hire Gold Coast" }, { id: 1203, time: "15:00", action: "Check-in: Rydges GC Airport Hotel", type: "stay", location: "Rydges Gold Coast Airport, Terminal Dr, Bilinga" }, { id: 1204, time: "16:00", action: "Walk: Coolangatta & Kirra Beach", type: "activity", location: "Kirra Beach, QLD" }, { id: 1205, time: "17:00", action: "Final Shopping: Woolworths (TimTams)", type: "shopping", location: "Woolworths Coolangatta" }, { id: 1206, time: "18:30", action: "Dinner: The Salty Fox (Rooftop runway view)", type: "food", location: "The Salty Fox Rooftop Bar" } ] },
                 { day: 13, date: "2026/08/26 (Wed)", city: "Transit", title: "Farewell Australia", icon: "plane", weather: "-", highlights: ["VA504 to SYD", "TR11 to SIN", "Changi Transfit"], stay: "Overnight Flight", transport: "Flights", details: [ { id: 1301, time: "05:00", action: "Walk to GC Airport Terminal (Right across street)", type: "transport", location: "Gold Coast Airport" }, { id: 1302, time: "07:05", action: "Flight VA504 Departs (OOL)", type: "transport", location: "" }, { id: 1303, time: "08:35", action: "Arrive at Sydney (SYD)", type: "transport", location: "" }, { id: 1304, time: "13:00", action: "Flight TR11 Departs (SYD)", type: "transport", location: "" }, { id: 1305, time: "19:30", action: "Arrive at Singapore (SIN) - 5.5hr Layover", type: "transport", location: "" }, { id: 1306, time: "20:00", action: "Changi T3: Bacha Coffee & Shake Shack", type: "food", location: "Bacha Coffee Changi T3" } ] },
                 { day: 14, date: "2026/08/27 (Thu)", city: "Home", title: "Arrive in Taiwan", icon: "home", weather: "-", highlights: ["Fly TR866", "Back Home"], stay: "Sweet Home", transport: "Flight", details: [ { id: 1401, time: "01:00", action: "Flight TR866 Departs (SIN T1)", type: "transport", location: "" }, { id: 1402, time: "05:45", action: "Arrive safely in Taiwan (TPE T1)", type: "transport", location: "Taiwan Taoyuan International Airport" } ] }
             ];
 
-            // FIXED: Precise Google Maps search strings
             const EXACT_LOCATIONS = {
                 "Meriton Pitt St (SYD)": "Meriton Suites Pitt Street, 329 Pitt St, Sydney NSW 2000, Australia",
                 "Scenic World": "Scenic World, Violet St, Katoomba NSW 2780, Australia",
@@ -681,7 +745,7 @@
             }
 
             window.updateStatus = function(status) {
-                window.lastSyncStatus = status; // Keep track for language switching
+                window.lastSyncStatus = status; 
                 const dot = document.getElementById('sync-dot');
                 const text = document.getElementById('sync-text');
                 const lang = localStorage.getItem('dashboard_lang') || 'zh-TW';
@@ -921,33 +985,6 @@
 
                 if(outfitList) outfitList.innerHTML = window.OUTFIT_TIPS.map(i => createLi(i, 'outfit')).join('');
                 if(driveList) driveList.innerHTML = window.DRIVE_TIPS.map(i => createLi(i, 'drive')).join('');
-            }
-
-            function initChart() {
-                const ctx = document.getElementById('tempChart');
-                if(!ctx) return;
-                
-                Chart.defaults.font.family = "Nunito, 'Noto Sans TC', sans-serif";
-                Chart.defaults.color = '#64748b';
-
-                new Chart(ctx.getContext('2d'), { 
-                    type: 'line', 
-                    data: { 
-                        labels: ['Morning', 'Noon', 'Evening', 'Night'], 
-                        datasets: [
-                            { label: 'Sydney (SYD)', data: [11, 18, 14, 9], borderColor: '#0284c7', backgroundColor: '#bae6fd', borderWidth: 3, tension: 0.4, fill: true }, 
-                            { label: 'Gold Coast (OOL)', data: [14, 22, 19, 12], borderColor: '#f59e0b', backgroundColor: '#fef3c7', borderWidth: 3, tension: 0.4, fill: true }
-                        ] 
-                    }, 
-                    options: { 
-                        responsive: true, maintainAspectRatio: false,
-                        plugins: { legend: { labels: { font: { weight: 'bold' } } } },
-                        scales: { 
-                            y: { grid: { color: '#f1f5f9' }, ticks: { font: { weight: 'bold' } } },
-                            x: { grid: { display: false }, ticks: { font: { weight: 'bold' } } }
-                        }
-                    } 
-                });
             }
 
         }
