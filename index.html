@@ -506,18 +506,22 @@
             }
         };
 
-        const getI18n = (key) => {
+        window.getI18n = (key) => {
             const lang = localStorage.getItem('dashboard_lang') || 'zh-TW';
             return translations[lang][key] || key;
         };
 
+        // 全面掃描並更新語系 (包含動態生成的節點)
         window.applyTranslations = function() {
             const lang = localStorage.getItem('dashboard_lang') || 'zh-TW';
             document.querySelectorAll('[data-i18n]').forEach(el => {
                 const key = el.getAttribute('data-i18n');
                 if (translations[lang] && translations[lang][key]) {
-                    if (el.tagName.toLowerCase() === 'input' && el.type === 'button') el.value = translations[lang][key];
-                    else el.innerHTML = translations[lang][key];
+                    if (el.tagName.toLowerCase() === 'input' && el.type === 'button') {
+                        el.value = translations[lang][key];
+                    } else {
+                        el.innerHTML = translations[lang][key];
+                    }
                 }
             });
         };
@@ -594,10 +598,11 @@
                     }
                     forecastHTML += `</div>`;
                     const forecastContainer = document.getElementById(`forecast-${idPrefix}`);
-                    if(forecastContainer) forecastContainer.innerHTML = forecastHTML;
-                    
+                    if(forecastContainer) {
+                        forecastContainer.innerHTML = forecastHTML;
+                        window.applyTranslations(); // 確保新生成的 DOM 也套用語系
+                    }
                     lucide.createIcons();
-                    window.applyTranslations(); // Re-apply translation to dynamically added widgets
                 } catch(e) { console.log('Weather fetch failed'); }
             };
 
@@ -611,6 +616,76 @@
         if (!window.isAuthenticated) {
             console.log("Auth failed. Scripts halted.");
         } else {
+            // [Bug Fix] 解除主要容器的隱藏狀態
+            document.getElementById('app-content').style.display = 'block';
+
+            // 提前宣告全域函式以策安全
+            window.updateStatus = function(status) {
+                window.lastSyncStatus = status; 
+                const dot = document.getElementById('sync-dot');
+                const text = document.getElementById('sync-text');
+                const lang = localStorage.getItem('dashboard_lang') || 'zh-TW';
+                
+                if (status === 'saved') {
+                    dot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-500';
+                    text.innerText = window.isEditor ? translations[lang].syncSaved : translations[lang].roleViewer;
+                } else if (status === 'saving') {
+                    dot.className = 'w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse';
+                    text.innerText = translations[lang].syncSaving;
+                } else {
+                    dot.className = 'w-2.5 h-2.5 rounded-full bg-rose-500';
+                    text.innerText = translations[lang].syncOffline;
+                }
+            };
+
+            window.applyRoleUI = function() {
+                const badge = document.getElementById('role-badge');
+                const lang = localStorage.getItem('dashboard_lang') || 'zh-TW';
+                if (window.isEditor) {
+                    badge.innerHTML = `<i data-lucide="edit-3" width="12"></i> ${translations[lang].roleEditor}`;
+                    badge.className = "text-xs font-bold px-3 py-1 rounded-full border flex items-center gap-1 bg-accent-50 text-accent-700 border-accent-200";
+                    document.getElementById('daily-edit-hint').style.display = 'block';
+                    document.getElementById('budget-add-container').classList.remove('hidden');
+                    document.getElementById('btn-add-outfit').classList.remove('hidden');
+                    document.getElementById('btn-add-drive').classList.remove('hidden');
+                } else {
+                    badge.innerHTML = `<i data-lucide="eye" width="12"></i> ${translations[lang].roleViewer}`;
+                    badge.className = "text-xs font-bold px-3 py-1 rounded-full border flex items-center gap-1 bg-slate-100 text-slate-600 border-slate-200";
+                    document.getElementById('daily-edit-hint').style.display = 'none';
+                    document.getElementById('budget-add-container').classList.add('hidden');
+                    document.getElementById('btn-add-outfit').classList.add('hidden');
+                    document.getElementById('btn-add-drive').classList.add('hidden');
+                }
+            };
+
+            window.switchTab = function(tabId) {
+                document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+                document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+                document.getElementById(`tab-${tabId}`).classList.add('active');
+                document.getElementById(`btn-${tabId}`).classList.add('active');
+            };
+
+            window.toggleAllDays = function() {
+                const firstDay = document.getElementById('day-content-1');
+                const isHidden = firstDay && firstDay.classList.contains('hidden');
+                window.ITINERARY_DATA.forEach(day => {
+                    const el = document.getElementById(`day-content-${day.day}`);
+                    if(el) isHidden ? el.classList.remove('hidden') : el.classList.add('hidden');
+                });
+                lucide.createIcons();
+            };
+
+            window.toggleDay = function(dayId) {
+                const el = document.getElementById(`day-content-${dayId}`);
+                if(el) el.classList.toggle('hidden');
+                lucide.createIcons();
+            };
+
+            window.openGoogleMaps = function(query) {
+                if (!query) return;
+                window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`, '_blank');
+            };
+
             const savedLang = localStorage.getItem('dashboard_lang') || 'zh-TW';
             document.getElementById('lang-selector').value = savedLang;
             window.changeLanguage(savedLang);
@@ -745,72 +820,6 @@
                 document.getElementById('sync-text').innerText = "Loaded Defaults";
             }
 
-            window.updateStatus = function(status) {
-                window.lastSyncStatus = status; 
-                const dot = document.getElementById('sync-dot');
-                const text = document.getElementById('sync-text');
-                const lang = localStorage.getItem('dashboard_lang') || 'zh-TW';
-                
-                if (status === 'saved') {
-                    dot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-500';
-                    text.innerText = window.isEditor ? translations[lang].syncSaved : translations[lang].roleViewer;
-                } else if (status === 'saving') {
-                    dot.className = 'w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse';
-                    text.innerText = translations[lang].syncSaving;
-                } else {
-                    dot.className = 'w-2.5 h-2.5 rounded-full bg-rose-500';
-                    text.innerText = translations[lang].syncOffline;
-                }
-            }
-
-            window.applyRoleUI = function() {
-                const badge = document.getElementById('role-badge');
-                const lang = localStorage.getItem('dashboard_lang') || 'zh-TW';
-                if (window.isEditor) {
-                    badge.innerHTML = `<i data-lucide="edit-3" width="12"></i> ${translations[lang].roleEditor}`;
-                    badge.className = "text-xs font-bold px-3 py-1 rounded-full border flex items-center gap-1 bg-accent-50 text-accent-700 border-accent-200";
-                    document.getElementById('daily-edit-hint').style.display = 'block';
-                    document.getElementById('budget-add-container').classList.remove('hidden');
-                    document.getElementById('btn-add-outfit').classList.remove('hidden');
-                    document.getElementById('btn-add-drive').classList.remove('hidden');
-                } else {
-                    badge.innerHTML = `<i data-lucide="eye" width="12"></i> ${translations[lang].roleViewer}`;
-                    badge.className = "text-xs font-bold px-3 py-1 rounded-full border flex items-center gap-1 bg-slate-100 text-slate-600 border-slate-200";
-                    document.getElementById('daily-edit-hint').style.display = 'none';
-                    document.getElementById('budget-add-container').classList.add('hidden');
-                    document.getElementById('btn-add-outfit').classList.add('hidden');
-                    document.getElementById('btn-add-drive').classList.add('hidden');
-                }
-            }
-
-            window.switchTab = function(tabId) {
-                document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-                document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
-                document.getElementById(`tab-${tabId}`).classList.add('active');
-                document.getElementById(`btn-${tabId}`).classList.add('active');
-            }
-
-            window.toggleAllDays = function() {
-                const firstDay = document.getElementById('day-content-1');
-                const isHidden = firstDay && firstDay.classList.contains('hidden');
-                window.ITINERARY_DATA.forEach(day => {
-                    const el = document.getElementById(`day-content-${day.day}`);
-                    if(el) isHidden ? el.classList.remove('hidden') : el.classList.add('hidden');
-                });
-                lucide.createIcons();
-            }
-
-            window.toggleDay = function(dayId) {
-                const el = document.getElementById(`day-content-${dayId}`);
-                if(el) el.classList.toggle('hidden');
-                lucide.createIcons();
-            }
-
-            window.openGoogleMaps = function(query) {
-                if (!query) return;
-                window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`, '_blank');
-            }
-
             window.updateDailyDetail = function(dayId, detailId, field, value) {
                 if(!window.isEditor) return;
                 const detail = window.ITINERARY_DATA.find(d => d.day === dayId)?.details.find(d => d.id === detailId);
@@ -823,7 +832,7 @@
                 document.getElementById(`day-content-${dayId}`).classList.remove('hidden');
             }
             window.removeDailyDetail = function(dayId, detailId) {
-                if(!window.isEditor || !confirm(getI18n('confirmDelete'))) return;
+                if(!window.isEditor || !confirm(window.getI18n('confirmDelete'))) return;
                 const day = window.ITINERARY_DATA.find(d => d.day === dayId);
                 day.details = day.details.filter(d => d.id !== detailId);
                 saveToCloud(); renderDaily();
@@ -871,7 +880,7 @@
                 renderAdvisories();
                 window.applyRoleUI();
                 lucide.createIcons();
-                window.applyTranslations(); // Re-apply translations to newly rendered dynamic elements
+                window.applyTranslations(); 
             }
 
             function renderDaily() {
@@ -922,7 +931,7 @@
                                                     <button onclick="event.stopPropagation(); openGoogleMaps('${detail.location || ''}')" class="text-xs text-theme-600 hover:text-white flex items-center gap-1 font-bold bg-theme-50 hover:bg-theme-500 px-2 py-1 rounded-lg border border-theme-100 transition-colors shadow-sm">
                                                         <i data-lucide="map-pin" width="12"></i> ${detail.location ? '<span data-i18n="navBtn">Nav</span>' : '<span data-i18n="noLocBtn">-</span>'}
                                                     </button>
-                                                    <div ${editAttr} onblur="updateDailyDetail(${day.day}, ${detail.id}, 'location', this.innerText)" class="text-xs font-medium text-slate-400 hover:text-slate-600 min-w-[50px] truncate max-w-[200px]" title="${detail.location || ''}">${detail.location || (window.isEditor ? getI18n('addLocHint') : '')}</div>
+                                                    <div ${editAttr} onblur="updateDailyDetail(${day.day}, ${detail.id}, 'location', this.innerText)" class="text-xs font-medium text-slate-400 hover:text-slate-600 min-w-[50px] truncate max-w-[200px]" title="${detail.location || ''}">${detail.location || (window.isEditor ? window.getI18n('addLocHint') : '')}</div>
                                                 </div>
                                             </div>
                                             ${window.isEditor ? `<button onclick="removeDailyDetail(${day.day}, ${detail.id})" class="opacity-0 group-hover:opacity-100 text-slate-300 hover:text-rose-500 transition-opacity p-2 bg-slate-50 rounded-full hover:bg-rose-50"><i data-lucide="trash-2" width="16"></i></button>` : ''}
@@ -988,7 +997,6 @@
                 if(outfitList) outfitList.innerHTML = window.OUTFIT_TIPS.map(i => createLi(i, 'outfit')).join('');
                 if(driveList) driveList.innerHTML = window.DRIVE_TIPS.map(i => createLi(i, 'drive')).join('');
             }
-
         }
     </script>
 </body>
